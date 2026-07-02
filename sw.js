@@ -1,4 +1,4 @@
-const CACHE = 'fdp-v4';
+const CACHE = 'fdp-v5';
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -18,6 +18,12 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
+    fetch(e.request)
+      .then(r => {
+        const rc = r.clone();
+        caches.open(CACHE).then(c => c.put(e.request, rc));
+        return r;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
