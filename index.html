@@ -81,11 +81,12 @@ select{font-size:16px;-webkit-appearance:none;appearance:none;background-image:u
   .hdr{margin-bottom:28px;padding-top:12px}
   .tabs{margin-bottom:28px;padding:5px}
   .tab{padding:14px 8px;font-size:15px}
-  .card{padding:20px 18px;margin-bottom:28px;gap:24px;border-radius:14px}
+  .card{padding:20px 16px;margin-bottom:28px;gap:24px;border-radius:14px}
   .row{grid-template-columns:1fr;gap:20px}
+  .row>*{width:100%;min-width:0}
   .fl{font-size:13px;margin-bottom:8px;font-weight:500}
-  input[type="time"],input[type="number"],select{padding:16px;font-size:18px;min-height:56px;border-radius:12px}
-  select{font-size:17px}
+  input[type="time"],input[type="number"],select{padding:16px;font-size:18px;min-height:56px;border-radius:12px;text-align:center;width:100%;display:block;box-sizing:border-box}
+  select{font-size:17px;text-align:left;text-align-last:center;padding-left:16px;padding-right:36px}
   .grid{grid-template-columns:1fr;gap:16px;margin-bottom:28px}
   .stat{padding:20px;border-radius:14px}
   .stat-lbl{font-size:13px;margin-bottom:6px}
