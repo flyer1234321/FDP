@@ -1,0 +1,9 @@
+{
+  "name": "FDP-räknare",
+  "short_name": "FDP",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0E1B17",
+  "theme_color": "#0E1B17",
+  "orientation": "portrait"
+}
