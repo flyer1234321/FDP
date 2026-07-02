@@ -1,4 +1,4 @@
-const CACHE = 'fdp-v6';
+const CACHE = 'fdp-v7';
 
 self.addEventListener('install', e => {
   e.waitUntil(
