@@ -73,6 +73,8 @@ select{font-size:15px;-webkit-appearance:none;appearance:none;background-image:u
 .tl-mk-time{font-size:10px;margin-top:3px;font-family:ui-monospace,monospace;white-space:nowrap}
 .tl-mk-label{font-size:9px;color:#5C7A6A;white-space:nowrap}
 .hidden{display:none}
+.info-i{display:inline-flex;width:18px;height:18px;border:1px solid #5C7A6A;border-radius:50%;color:#7FA98C;font-size:11px;align-items:center;justify-content:center;margin-left:8px;cursor:pointer;font-family:ui-monospace,monospace;flex-shrink:0;user-select:none}
+.hint-box{font-size:12px;color:#9DB5A8;line-height:1.5;margin-top:6px;padding:8px 12px;background:rgba(127,169,140,.07);border-left:2px solid #E8A33D;border-radius:0 8px 8px 0;display:none}
 </style>
 </head>
 <body>
@@ -80,13 +82,17 @@ select{font-size:15px;-webkit-appearance:none;appearance:none;background-image:u
 
 <script>
 "use strict";
+let _hid=0;
+window.togHint=function(id,el){const h=document.getElementById(id);const open=h.style.display==='block';h.style.display=open?'none':'block';el.style.borderColor=open?'#5C7A6A':'#E8A33D';el.style.color=open?'#7FA98C':'#E8A33D'};
 // ─── i18n ───────────────────────────────────────────────────────────────
-const L={sv:{title:"FDP-räknare",ref:"ORO.FTL · CS FTL.1",tabStandby:"Standby",tabNormal:"Vanlig tjänst.",sbyTypeLabel:"Typ av standby",sbyOther:"Annan standby (hemma)",sbyAirport:"Flygplatsstandby (ASB)",sbyStart:"SBY start",sbyEnd:"SBY slut",called:"Utkallad (kontaktad)",reportIn:"Incheckning",reportOut:"Utcheckning",sectors:"Sektorer",augLabel:"Augmented (höjer tröskel till 8h)",splitLabel:"Split duty (höjer tröskel till 8h)",sbyBeforeOther:"SBY till report",sbyBeforeASB:"ASB före FDP",reduction:"Reduktion",nightCreditSub:"nattkredit",noNightCredit:"ingen nattkredit",asbReduces:">4h reducerar",baseFDP:"Bas-FDP (T2)",redLimit:"Red. FDP-gräns",afterReduction:"efter reduktion",actualFDP:"Faktisk FDP",ok:"OK",over:"ÖVER",awakeTime:"Vaken tid (OM-A Policy)",asbCombined:"ASB+FDP komb.",within:"inom",dutyCred:"Duty-kredit",asbFullDuty:"ASB = full duty",sby25:"25% av SBY till report",sby25full:"25% av hela SBY",withinLimits:"Inom gräns",overLimit:"ÖVER gräns",sbyVerdictOk:"Inom ORO.FTL.225",fdpOverLimit:"FDP över gräns",awakeOverMax:"Vaken tid över max (OM-A)",sbyOver16:"SBY över 16h",breaksLimit:"Bryter mot gräns",sbySource:"Källa: ORO.FTL.225, CS FTL.1.225, ORO.FTL.205(b)(1) Table 2.",tzLabel:"Tidsskillnad destination",tz0:"Samma tid (Norden, Centraleuropa)",tz1:"1h (Baltikum, London, Portugal)",tz2:"2h (Kanarieöarna, Island)",tz3:"3h (Turkiet, Grekland vintertid)",tzHint:"Skillnad mot ARN/CPH. Berlin, Rom, Oslo = 0h. Riga, Tallinn, London = 1h.",rotLabel:"Hur länge sedan 1:a incheckning?",rotToday:"Idag (första passet)",rot12:"Ca 12h",rot24:"Ca 1 dygn",rot36:"Ca 1,5 dygn",rot48:"Ca 2 dygn",rot60:"Ca 2,5 dygn",rot72:"Ca 3 dygn",rot96:"Ca 4 dygn",rot120:"5+ dygn",rotHint:"Vid 0-1h TZ-skillnad påverkar detta inte FDP alls.",restBefore:"Vila innan (h)",restAfter:"Vila efter (h)",awayToggle:"Vila borta från hemmabas",ifrLabel:"In-flight rest — klass",ifrNone:"Ingen",extraCrew:"Extra besättning",splitDutyLabel:"Split duty",breakLabel:"Rast (h, min 3h)",appliedLimit:"Tillämpad gräns",restBeforeLabel:"Vila innan",underMin:"UNDER",acclimB:"Akklimatiserad till referenstid",acclimD:"Akklimatiserad till ny plats",acclimX:"Okänt akklimatiseringstillstånd",acclimBadge:"inom 2h-bandet",disruptiveTitle:"DISRUPTIVE SCHEDULE · LOKAL NATT",earlyStart:"Early start (05–06)",lateFinish:"Late finish (23–02)",nightDuty:"Night duty (02–05)",localNights:"Lokala nätter i vila",disruptiveWarn:"Disruptive — kontrollera lokala nätter (CS FTL.1.235(a)). 4+ disruptive → 60h extended recovery.",notDisruptive:"Ej disruptive schedule.",normVerdictOk:"Inom ORO.FTL.205/.235",restUnderMin:"Vila under min.",normSource:"Källa: ORO.FTL.205, .105(1), CS FTL.1.205(c), .220, .235.",noExtension:"ingen förlängning",ifrSrc:"In-flight rest",splitSrc:"Split: bas+50% av",hRest:"h rast",extra:"extra",sekt:"sekt",isCalledLabel:"Utkallad till flygning",notCalledLabel:"Ingen utkallelse (enbart SBY)",sbyFullPeriod:"Hela SBY-perioden",prevDutyLabel:"Föreg. tjänstgöring (h)",prevDutyHint:"Vila måste vara ≥ föreg. duty (ORO.FTL.235).",minRestReq:"Krav: max av"},
-en:{title:"FDP Calculator",ref:"ORO.FTL · CS FTL.1",tabStandby:"Standby",tabNormal:"Normal duty",sbyTypeLabel:"Standby type",sbyOther:"Other standby (home)",sbyAirport:"Airport standby (ASB)",sbyStart:"SBY start",sbyEnd:"SBY end",called:"Called (contacted)",reportIn:"Report on",reportOut:"Report off",sectors:"Sectors",augLabel:"Augmented (threshold → 8h)",splitLabel:"Split duty (threshold → 8h)",sbyBeforeOther:"SBY to report",sbyBeforeASB:"ASB before FDP",reduction:"Reduction",nightCreditSub:"night credit",noNightCredit:"no night credit",asbReduces:">4h reduces",baseFDP:"Base FDP (T2)",redLimit:"Reduced FDP limit",afterReduction:"after reduction",actualFDP:"Actual FDP",ok:"OK",over:"EXCEEDED",awakeTime:"Awake time (OM-A Policy)",asbCombined:"ASB+FDP combined",within:"within",dutyCred:"Duty credit",asbFullDuty:"ASB = full duty",sby25:"25% of SBY to report",sby25full:"25% of full SBY",withinLimits:"Within limits",overLimit:"EXCEEDS limit",sbyVerdictOk:"Within ORO.FTL.225",fdpOverLimit:"FDP exceeds limit",awakeOverMax:"Awake over max (OM-A)",sbyOver16:"SBY over 16h",breaksLimit:"Limit exceeded",sbySource:"Source: ORO.FTL.225, CS FTL.1.225, Table 2.",tzLabel:"TZ difference (dest.)",tz0:"Same time (Nordics, C. Europe)",tz1:"1h (Baltics, London, Portugal)",tz2:"2h (Canaries, Iceland)",tz3:"3h (Turkey, Greece winter)",tzHint:"Diff from ARN/CPH. Berlin=0h. Riga,London=1h.",rotLabel:"Time since 1st check-in?",rotToday:"Today (first duty)",rot12:"~12h",rot24:"~1 day",rot36:"~1.5 days",rot48:"~2 days",rot60:"~2.5 days",rot72:"~3 days",rot96:"~4 days",rot120:"5+ days",rotHint:"At 0-1h TZ diff, this has no effect.",restBefore:"Rest before (h)",restAfter:"Rest after (h)",awayToggle:"Rest away from base",ifrLabel:"In-flight rest — class",ifrNone:"None",extraCrew:"Extra crew",splitDutyLabel:"Split duty",breakLabel:"Break (h, min 3h)",appliedLimit:"Applied limit",restBeforeLabel:"Rest before",underMin:"UNDER",acclimB:"Acclimatised to ref. time",acclimD:"Acclimatised to new location",acclimX:"Unknown acclimatisation",acclimBadge:"within 2h band",disruptiveTitle:"DISRUPTIVE SCHEDULE · LOCAL NIGHT",earlyStart:"Early start (05–06)",lateFinish:"Late finish (23–02)",nightDuty:"Night duty (02–05)",localNights:"Local nights in rest",disruptiveWarn:"Disruptive — check local nights (CS FTL.1.235(a)). 4+ → 60h extended recovery.",notDisruptive:"Not disruptive.",normVerdictOk:"Within ORO.FTL.205/.235",fdpOverLimit:"FDP exceeds limit",restUnderMin:"Rest below min.",normSource:"Source: ORO.FTL.205, .105(1), CS FTL.1.205(c), .220, .235.",noExtension:"no extension",ifrSrc:"In-flight rest",splitSrc:"Split: base+50% of",hRest:"h break",extra:"extra",sekt:"sect",isCalledLabel:"Called to flight duty",notCalledLabel:"No callout (SBY only)",sbyFullPeriod:"Full SBY period",prevDutyLabel:"Prev. duty length (h)",prevDutyHint:"Rest must be ≥ prev. duty (ORO.FTL.235).",minRestReq:"Req: max of"}};
+const L={sv:{title:"FDP-räknare",ref:"ORO.FTL · CS FTL.1",tabStandby:"Standby",tabNormal:"Vanlig tjänst.",sbyTypeLabel:"Typ av standby",sbyOther:"Annan standby (hemma)",sbyAirport:"Flygplatsstandby (ASB)",sbyStart:"SBY start",sbyEnd:"SBY slut",called:"Utkallad (kontaktad)",reportIn:"Incheckning",reportOut:"Utcheckning",sectors:"Sektorer",augLabel:"Augmented (höjer tröskel till 8h)",splitLabel:"Split duty (höjer tröskel till 8h)",sbyBeforeOther:"SBY till report",sbyBeforeASB:"ASB före FDP",reduction:"Reduktion",nightCreditSub:"nattkredit",noNightCredit:"ingen nattkredit",asbReduces:">4h reducerar",baseFDP:"Bas-FDP (T2)",redLimit:"Red. FDP-gräns",afterReduction:"efter reduktion",actualFDP:"Faktisk FDP",ok:"OK",over:"ÖVER",awakeTime:"Vaken tid (OM-A Policy)",asbCombined:"ASB+FDP komb.",within:"inom",dutyCred:"Duty-kredit",asbFullDuty:"ASB = full duty",sby25:"25% av SBY till report",sby25full:"25% av hela SBY",withinLimits:"Inom gräns",overLimit:"ÖVER gräns",sbyVerdictOk:"Inom ORO.FTL.225",fdpOverLimit:"FDP över gräns",awakeOverMax:"Vaken tid över max (OM-A)",sbyOver16:"SBY över 16h",asbOverMax:"ASB över 12h (OM-A) eller komb. över 16h",respTooShort:"Under 60 min mellan utkallelse och report (OM-A)",breaksLimit:"Bryter mot gräns",sbySource:"Källa: ORO.FTL.225, CS FTL.1.225, ORO.FTL.205(b)(1) Table 2.",tzLabel:"Tidsskillnad destination",tz0:"Samma tid (Norden, Centraleuropa)",tz1:"1h (Baltikum, London, Portugal)",tz2:"2h (Kanarieöarna, Island)",tz3:"3h (Turkiet, Grekland vintertid)",tzHint:"Skillnad mot din hemmabas. Ex från CET: Berlin, Rom = 0h. Riga, London = 1h.",rotLabel:"Hur länge sedan 1:a incheckning?",rotToday:"Idag (första passet)",rot12:"Ca 12h",rot24:"Ca 1 dygn",rot36:"Ca 1,5 dygn",rot48:"Ca 2 dygn",rot60:"Ca 2,5 dygn",rot72:"Ca 3 dygn",rot96:"Ca 4 dygn",rot120:"5+ dygn",rotHint:"Vid 0-1h TZ-skillnad påverkar detta inte FDP alls.",restBefore:"Vila innan (h)",restAfter:"Vila efter (h)",awayToggle:"Vila borta från hemmabas",ifrLabel:"In-flight rest — klass",ifrNone:"Ingen",extraCrew:"Extra besättning",splitDutyLabel:"Split duty",breakLabel:"Rast (h, min 3h)",appliedLimit:"Tillämpad gräns",restBeforeLabel:"Vila innan",underMin:"UNDER",acclimB:"Akklimatiserad till referenstid",acclimD:"Akklimatiserad till ny plats",acclimX:"Okänt akklimatiseringstillstånd",acclimBadge:"inom 2h-bandet",disruptiveTitle:"DISRUPTIVE SCHEDULE · LOKAL NATT",earlyStart:"Early start (05–06)",lateFinish:"Late finish (23–02)",nightDuty:"Night duty (02–05)",localNights:"Lokala nätter i vila",disruptiveWarn:"Disruptive — kontrollera lokala nätter (CS FTL.1.235(a)). 4+ disruptive → 60h extended recovery.",notDisruptive:"Ej disruptive schedule.",normVerdictOk:"Inom ORO.FTL.205/.235",restUnderMin:"Vila under min.",normSource:"Källa: ORO.FTL.205, .105(1), CS FTL.1.205(c), .220, .235.",noExtension:"ingen förlängning",ifrSrc:"In-flight rest",splitSrc:"Split: bas+50% av",hRest:"h rast",extra:"extra",sekt:"sekt",isCalledLabel:"Utkallad till flygning",notCalledLabel:"Ingen utkallelse (enbart SBY)",sbyFullPeriod:"Hela SBY-perioden",prevDutyLabel:"Föreg. tjänstgöring (h)",prevDutyHint:"Vila måste vara ≥ föreg. duty (ORO.FTL.235).",minRestReq:"Krav: max av",extLabel:"Planerad förlängning (E1, +1h utan in-flight rest)",cdLabel:"Commander's discretion (max +2h)",extSrc:"Förlängning (CS FTL.1.205(b))",cdSuffix:"+ CD max 2h",extNotAllowed:"Förlängning ej tillåten för denna starttid/sektorantal, eller kombinerad med split/in-flight rest.",calledHint:"Av = ingen utkallelse skedde. Då beräknas endast duty-kredit (25% av hela SBY-perioden).",augHint:"Slå på om FDP:n efter utkallelsen flygs med förstärkt besättning och in-flight rest — tröskeln höjs från 6h till 8h (CS FTL.1.225(b)(8)).",sbySplitHint:"Slå på om FDP:n efter utkallelsen är en split duty — tröskeln höjs från 6h till 8h (CS FTL.1.225(b)(8)).",awayHint:"Vila som påbörjas borta från hemmabas: minimikravet är 10h istället för 12h (ORO.FTL.235(b)).",splitHint:"Rast ≥3h på marken förlänger max-FDP med upp till 50% av rasten. Rasten räknas i sin helhet som FDP. Kan ej kombineras med E1 eller in-flight rest (CS FTL.1.220).",extHint:"Planerad i förväg, max +1h, max 2 ggr per 7 dagar. Kräver utökad vila: pre- och postflight +2h, eller postflight +4h. Ej tillåten vid vissa starttider/sektorantal. Kan ej kombineras med split duty eller in-flight rest (CS FTL.1.205(b)).",cdHint:"Endast vid oförutsedda omständigheter som uppstår vid eller efter incheckning — kan aldrig planeras. Max +2h på gällande gräns. Om ökningen överskrids på sista sektorn p.g.a. oförutsedda omständigheter efter start får flygningen fortsätta till planerad destination eller alternativ. Efterföljande vila får aldrig understiga 10h. Befälhavaren ska rapportera användningen (ORO.FTL.205(f)).",viewSimple:"Enkel",viewAdvanced:"Avancerad",latestOff:"Senaste utcheckning",latestOffSub:"utan förlängning",simpleNote:"Max-FDP ur Table 2 (akklimatiserad besättning) baserat på incheckningstid i referenstid/lokaltid. Utan extension, split duty, in-flight rest eller standby-reduktion — växla till Avancerad för dessa."},
+en:{title:"FDP Calculator",ref:"ORO.FTL · CS FTL.1",tabStandby:"Standby",tabNormal:"Normal duty",sbyTypeLabel:"Standby type",sbyOther:"Other standby (home)",sbyAirport:"Airport standby (ASB)",sbyStart:"SBY start",sbyEnd:"SBY end",called:"Called (contacted)",reportIn:"Report on",reportOut:"Report off",sectors:"Sectors",augLabel:"Augmented (threshold → 8h)",splitLabel:"Split duty (threshold → 8h)",sbyBeforeOther:"SBY to report",sbyBeforeASB:"ASB before FDP",reduction:"Reduction",nightCreditSub:"night credit",noNightCredit:"no night credit",asbReduces:">4h reduces",baseFDP:"Base FDP (T2)",redLimit:"Reduced FDP limit",afterReduction:"after reduction",actualFDP:"Actual FDP",ok:"OK",over:"EXCEEDED",awakeTime:"Awake time (OM-A Policy)",asbCombined:"ASB+FDP combined",within:"within",dutyCred:"Duty credit",asbFullDuty:"ASB = full duty",sby25:"25% of SBY to report",sby25full:"25% of full SBY",withinLimits:"Within limits",overLimit:"EXCEEDS limit",sbyVerdictOk:"Within ORO.FTL.225",fdpOverLimit:"FDP exceeds limit",awakeOverMax:"Awake over max (OM-A)",sbyOver16:"SBY over 16h",asbOverMax:"ASB over 12h (OM-A) or combined over 16h",respTooShort:"Less than 60 min call-to-report (OM-A)",breaksLimit:"Limit exceeded",sbySource:"Source: ORO.FTL.225, CS FTL.1.225, Table 2.",tzLabel:"TZ difference (dest.)",tz0:"Same time (Nordics, C. Europe)",tz1:"1h (Baltics, London, Portugal)",tz2:"2h (Canaries, Iceland)",tz3:"3h (Turkey, Greece winter)",tzHint:"Diff from your home base. Ex from CET: Berlin=0h. Riga, London=1h.",rotLabel:"Time since 1st check-in?",rotToday:"Today (first duty)",rot12:"~12h",rot24:"~1 day",rot36:"~1.5 days",rot48:"~2 days",rot60:"~2.5 days",rot72:"~3 days",rot96:"~4 days",rot120:"5+ days",rotHint:"At 0-1h TZ diff, this has no effect.",restBefore:"Rest before (h)",restAfter:"Rest after (h)",awayToggle:"Rest away from base",ifrLabel:"In-flight rest — class",ifrNone:"None",extraCrew:"Extra crew",splitDutyLabel:"Split duty",breakLabel:"Break (h, min 3h)",appliedLimit:"Applied limit",restBeforeLabel:"Rest before",underMin:"UNDER",acclimB:"Acclimatised to ref. time",acclimD:"Acclimatised to new location",acclimX:"Unknown acclimatisation",acclimBadge:"within 2h band",disruptiveTitle:"DISRUPTIVE SCHEDULE · LOCAL NIGHT",earlyStart:"Early start (05–06)",lateFinish:"Late finish (23–02)",nightDuty:"Night duty (02–05)",localNights:"Local nights in rest",disruptiveWarn:"Disruptive — check local nights (CS FTL.1.235(a)). 4+ → 60h extended recovery.",notDisruptive:"Not disruptive.",normVerdictOk:"Within ORO.FTL.205/.235",fdpOverLimit:"FDP exceeds limit",restUnderMin:"Rest below min.",normSource:"Source: ORO.FTL.205, .105(1), CS FTL.1.205(c), .220, .235.",noExtension:"no extension",ifrSrc:"In-flight rest",splitSrc:"Split: base+50% of",hRest:"h break",extra:"extra",sekt:"sect",isCalledLabel:"Called to flight duty",notCalledLabel:"No callout (SBY only)",sbyFullPeriod:"Full SBY period",prevDutyLabel:"Prev. duty length (h)",prevDutyHint:"Rest must be ≥ prev. duty (ORO.FTL.235).",minRestReq:"Req: max of",extLabel:"Planned extension (E1, +1h without in-flight rest)",cdLabel:"Commander's discretion (max +2h)",extSrc:"Extension (CS FTL.1.205(b))",cdSuffix:"+ CD max 2h",extNotAllowed:"Extension not allowed for this start time/sector count, or combined with split/in-flight rest.",calledHint:"Off = no callout occurred. Only duty credit is calculated (25% of the full SBY period).",augHint:"Enable if the FDP after callout is flown with augmented crew and in-flight rest — threshold rises from 6h to 8h (CS FTL.1.225(b)(8)).",sbySplitHint:"Enable if the FDP after callout is a split duty — threshold rises from 6h to 8h (CS FTL.1.225(b)(8)).",awayHint:"Rest commencing away from home base: minimum requirement is 10h instead of 12h (ORO.FTL.235(b)).",splitHint:"Ground break ≥3h extends max FDP by up to 50% of the break. The break counts in full as FDP. Cannot be combined with E1 or in-flight rest (CS FTL.1.220).",extHint:"Planned in advance, max +1h, max twice per 7 days. Requires increased rest: pre- and post-flight +2h, or post-flight +4h. Not allowed at certain start times/sector counts. Cannot be combined with split duty or in-flight rest (CS FTL.1.205(b)).",cdHint:"Only for unforeseen circumstances arising at or after reporting — can never be planned. Max +2h on the applicable limit. If on the final sector the allowed increase is exceeded due to unforeseen circumstances after take-off, the flight may continue to the planned destination or alternate. Subsequent rest never below 10h. The commander must report its use (ORO.FTL.205(f)).",viewSimple:"Simple",viewAdvanced:"Advanced",latestOff:"Latest check-out",latestOffSub:"without extension",simpleNote:"Max FDP from Table 2 (acclimatised crew) based on check-in at reference/local time. Without extension, split duty, in-flight rest or standby reduction — switch to Advanced for those."}};
 
 // ─── Tables ─────────────────────────────────────────────────────────────
 const T2=[{f:360,t:809,v:[780,750,720,690,660,630,600,570,540]},{f:810,t:839,v:[765,735,705,675,645,615,585,555,540]},{f:840,t:869,v:[750,720,690,660,630,600,570,540,540]},{f:870,t:899,v:[735,705,675,645,615,585,555,540,540]},{f:900,t:929,v:[720,690,660,630,600,570,540,540,540]},{f:930,t:959,v:[705,675,645,615,585,555,540,540,540]},{f:960,t:989,v:[690,660,630,600,570,540,540,540,540]},{f:990,t:1019,v:[675,645,615,585,555,540,540,540,540]},{f:1020,t:299,v:[660,630,600,570,540,540,540,540,540]},{f:300,t:314,v:[720,690,660,630,600,570,540,540,540]},{f:315,t:329,v:[735,705,675,645,615,585,555,540,540]},{f:330,t:344,v:[750,720,690,660,630,600,570,540,540]},{f:345,t:359,v:[765,735,705,675,645,615,585,555,540]}];
 const T3=[660,630,600,570,540,540,540];
+const TEXT=[{f:360,t:374,v:[null,null,null,null]},{f:375,t:389,v:[795,765,735,705]},{f:390,t:404,v:[810,780,750,720]},{f:405,t:419,v:[825,795,765,735]},{f:420,t:809,v:[840,810,780,750]},{f:810,t:839,v:[825,795,765,null]},{f:840,t:869,v:[810,780,750,null]},{f:870,t:899,v:[795,765,735,null]},{f:900,t:929,v:[780,750,720,null]},{f:930,t:959,v:[765,null,null,null]},{f:960,t:989,v:[750,null,null,null]},{f:990,t:1019,v:[735,null,null,null]},{f:1020,t:1049,v:[720,null,null,null]},{f:1050,t:1079,v:[705,null,null,null]},{f:1080,t:1109,v:[690,null,null,null]},{f:1110,t:1139,v:[675,null,null,null]},{f:1140,t:359,v:[null,null,null,null]}];
+function lExt(rt,s){if(s>5)return null;const rm=tm(rt);const b=TEXT.find(b=>b.f<=b.t?rm>=b.f&&rm<=b.t:rm>=b.f||rm<=b.t);if(!b)return null;return b.v[s<=2?0:s-2]}
 function lT2(rt,s){const rm=tm(rt);const b=T2.find(b=>{const f=b.f,t=b.t;return f<=t?rm>=f&&rm<=t:rm>=f||rm<=t})||T2[0];const i=Math.min(Math.max(s,1),10)<=2?0:Math.min(s,10)-2;return b.v[Math.min(i,b.v.length-1)]}
 function lT3(s){const i=Math.min(Math.max(s,1),8)<=2?0:Math.min(s,8)-2;return T3[Math.min(i,T3.length-1)]}
 
@@ -95,11 +101,11 @@ function tm(t){const p=t.split(':');return(+p[0])*60+(+p[1])}
 function fmt(m){const s=m<0?'-':'';const a=Math.abs(Math.round(m));return s+Math.floor(a/60)+':'+String(a%60).padStart(2,'0')}
 function tfmt(m){m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 
-function nightCredit(s0,end){let c=0;for(let m=s0;m<end;m++){const n=((m%1440)+1440)%1440;if(n>=1380||n<420)c++}return c}
+function nightCredit(s0,end){const st=((s0%1440)+1440)%1440;if(!(st>=1380||st<420))return 0;let c=0;for(let m=s0;m<end;m++){const n=((m%1440)+1440)%1440;if(n>=1380||n<420)c++}return c}
 
 function acclim(td,hrs,t){const a=Math.abs(td);if(a<2)return{code:'B',label:t.acclimB+' ('+t.acclimBadge+')'};
 const r=a<4?0:a<=6?1:a<=9?2:3;const c=hrs<48?0:hrs<72?1:hrs<96?2:hrs<120?3:4;
-const tbl=[['B','X','D','D','D'],['B','X','X','D','D'],['B','X','X','X','D'],['B','X','X','X','X']];
+const tbl=[['B','D','D','D','D'],['B','X','D','D','D'],['B','X','X','D','D'],['B','X','X','X','D']];
 const code=tbl[r][c];return{code,label:{B:t.acclimB,D:t.acclimD,X:t.acclimX}[code]}}
 
 const IFR={1:{class3:840,class2:900,class1:960},2:{class3:900,class2:960,class1:1020}};
@@ -109,9 +115,9 @@ function disruptive(rt,ot){const r=tm(rt),o=tm(ot);return{early:r>=300&&r<=359,l
 function localNights(ot,hrs){const offM=tm(ot),re=offM+hrs*60;let n=0,ns=Math.ceil(offM/1440)*1440+1320;if(ns-1440+480>offM&&ns-1440>=offM)ns-=1440;while(ns<re){if(ns>=offM&&ns+480<=re)n++;ns+=1440}return n}
 
 // ─── State ──────────────────────────────────────────────────────────────
-let lang='sv',mode='standby';
+let lang='en',mode='standby',nView='simple';
 let S={sbyType:'other',sbyStart:'04:00',sbyEnd:'16:00',isCalled:true,callTime:'10:30',reportTime:'15:00',sectors:3,offTime:'21:00',aug:false,split:false};
-let N={report:'06:00',off:'14:30',sectors:2,tz:0,hrs:0,restFac:'none',extraCrew:0,split:false,breakH:0,prevRest:12,prevDuty:8,away:false,postRest:12};
+let N={report:'06:00',off:'14:30',sectors:2,tz:0,hrs:0,restFac:'none',extraCrew:0,split:false,breakH:0,prevRest:12,prevDuty:8,away:false,postRest:12,ext:false,cd:false};
 
 function t(){return L[lang]}
 
@@ -123,15 +129,17 @@ function calcSby(){
   let om=tm(S.offTime);if(om<rm)om+=1440;
   if(!S.isCalled&&S.sbyType==='other'){
     const dur=se-s0,dc=Math.round(dur*.25),nc=nightCredit(s0,se),aw=dur-nc;
-    return{type:'other',called:false,sbyBefore:dur,red:0,nc:0,baseFDP:0,redLimit:0,actFDP:0,totalAwake:aw,awLim:1080,fdpOk:true,awOk:aw<=1080,sbyOk:dur<=960,dc,s0,se,cm:s0,rm:s0,om:s0}}
+    return{type:'other',called:false,sbyBefore:dur,red:0,nc:0,baseFDP:0,redLimit:0,actFDP:0,totalAwake:aw,awLim:1080,fdpOk:true,awOk:aw<=1080,sbyOk:dur<=960,respOk:true,dc,s0,se,cm:s0,rm:s0,om:s0}}
   if(S.sbyType==='airport'){
     const dur=rm-s0,base=lT2(S.reportTime,S.sectors),act=om-rm,red=Math.max(0,dur-240),rl=Math.max(0,base-red),comb=om-s0;
-    return{type:'airport',called:true,sbyBefore:dur,red,nc:0,baseFDP:base,redLimit:rl,actFDP:act,totalAwake:comb,awLim:960,fdpOk:act<=rl,awOk:comb<=960,sbyOk:comb<=960,dc:dur,s0,se,cm:rm,rm,om}}
+    const asbMaxOk=dur<=720; // OM-A: max ASB 12h
+    return{type:'airport',called:true,sbyBefore:dur,red,nc:0,baseFDP:base,redLimit:rl,actFDP:act,totalAwake:comb,awLim:960,fdpOk:act<=rl,awOk:comb<=960,sbyOk:comb<=960&&asbMaxOk,asbMaxOk,respOk:true,dc:dur,s0,se,cm:rm,rm,om}}
   const sbyToRep=rm-s0,base=lT2(S.reportTime,S.sectors),act=om-rm;
   const thresh=(S.aug||S.split)?480:360;let rawRed=Math.max(0,sbyToRep-thresh);
   const nc=nightCredit(s0,cm);const red=Math.max(0,rawRed-nc);
   const rl=Math.max(0,base-red);const nightSby=nightCredit(s0,rm);const aw=(om-s0)-nightSby;
-  return{type:'other',called:true,sbyBefore:sbyToRep,red,nc,baseFDP:base,redLimit:rl,actFDP:act,totalAwake:aw,awLim:1080,fdpOk:act<=rl,awOk:aw<=1080,sbyOk:sbyToRep<=960,dc:Math.round(sbyToRep*.25),s0,se,cm,rm,om}}
+  const respOk=(rm-cm)>=60; // OM-A: min 60 min call->report
+  return{type:'other',called:true,sbyBefore:sbyToRep,red,nc,baseFDP:base,redLimit:rl,actFDP:act,totalAwake:aw,awLim:1080,fdpOk:act<=rl,awOk:aw<=1080,sbyOk:sbyToRep<=960,respOk,dc:Math.round(sbyToRep*.25),s0,se,cm,rm,om}}
 
 function calcNorm(){
   const T=t(),rm=tm(N.report);let om=tm(N.off);if(om<rm)om+=1440;const act=om-rm;
@@ -140,27 +148,31 @@ function calcNorm(){
   const ifrOk=N.restFac!=='none'&&N.extraCrew>0&&N.sectors<=3;let ifrLim=null;
   if(ifrOk){const r=IFR[Math.min(N.extraCrew,2)];ifrLim=r?r[N.restFac]:null}
   const spOk=N.split&&N.breakH>=3&&!ifrOk;let spLim=null;if(spOk)spLim=base+Math.floor(N.breakH*60*.5);
+  const extAp=N.ext&&!ifrOk&&!spOk;const extVal=extAp?lExt(N.report,N.sectors):null;
   let lim=base,src=tbl+', '+T.noExtension;
   if(ifrOk&&ifrLim){lim=ifrLim;src=T.ifrSrc+': '+N.extraCrew+' '+T.extra+', '+N.restFac}
   else if(spOk){lim=spLim;src=T.splitSrc+' '+N.breakH+T.hRest}
+  else if(extAp&&extVal!==null){lim=extVal;src=T.extSrc}
+  const extNA=extAp&&extVal===null;
+  if(N.cd){lim=lim+120;src=src+' '+T.cdSuffix}
   const fdpOk=act<=lim;const bf=N.away?10:12;const minR=Math.max(bf,N.prevDuty);const rOk=N.prevRest>=minR;
   const dis=disruptive(N.report,N.off);const pn=localNights(N.off,N.postRest);
-  return{rm,om,act,base,lim,src,tbl,fdpOk,acc,rOk,minR,bf,dis,pn}}
+  return{rm,om,act,base,lim,src,tbl,fdpOk,acc,rOk,minR,bf,dis,pn,extNA}}
 
 // ─── Render ─────────────────────────────────────────────────────────────
 function h(tag,cls,html){return'<div class="'+cls+'">'+html+'</div>'}
 function stat(lbl,val,sub,accent,bad){return'<div class="stat'+(bad?' bad':'')+'"><div class="stat-lbl">'+lbl+'</div><div class="stat-val'+(bad?' bad':accent?' accent':'')+'">'+val+'</div><div class="stat-sub'+(bad?' bad':'')+'">'+sub+'</div></div>'}
-function field(lbl,inner){return'<div><div class="fl">'+lbl+'</div>'+inner+'</div>'}
+function field(lbl,inner,info){const hid='h'+(_hid++);const iBtn=info?'<span class="info-i" onclick="togHint(\''+hid+'\',this)">i</span>':'';const hBox=info?'<div class="hint-box" id="'+hid+'">'+info+'</div>':'';return'<div><div class="fl" style="display:flex;align-items:center">'+lbl+iBtn+'</div>'+inner+hBox+'</div>'}
 function sel(id,opts,val){return'<select id="'+id+'">'+opts.map(o=>'<option value="'+o[0]+'"'+(String(o[0])===String(val)?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>'}
 function inp(id,type,val,extra){return'<input type="'+type+'" id="'+id+'" value="'+val+'" '+(extra||'')+'>'}
-function tgl(id,on,lbl){return'<div class="tgl" data-tgl="'+id+'"><div class="tgl-box'+(on?' on':'')+'"><div class="tgl-dot"></div></div><span class="tgl-label">'+lbl+'</span></div>'}
+function tgl(id,on,lbl,hint){const hid='h'+(_hid++);const iBtn=hint?'<span class="info-i" onclick="event.stopPropagation();togHint(\''+hid+'\',this)">i</span>':'';const hBox=hint?'<div class="hint-box" id="'+hid+'">'+hint+'</div>':'';return'<div><div class="tgl" data-tgl="'+id+'"><div class="tgl-box'+(on?' on':'')+'"><div class="tgl-dot"></div></div><span class="tgl-label">'+lbl+'</span>'+iBtn+'</div>'+hBox+'</div>'}
 
 function render(){
   const T=t();let o='';
   // Header
   o+='<div class="hdr"><div><div class="ref">'+T.ref+'</div><h1>'+T.title+'</h1></div><button class="lang-btn" id="langBtn">'+(lang==='sv'?'EN':'SV')+'</button></div>';
   // Tabs
-  o+='<div class="tabs"><button class="tab'+(mode==='standby'?' on':'')+'" data-mode="standby">'+T.tabStandby+'</button><button class="tab'+(mode==='normal'?' on':'')+'" data-mode="normal">'+T.tabNormal+'</button></div>';
+  o+='<div class="tabs"><button class="tab'+(mode==='normal'?' on':'')+'" data-mode="normal">'+T.tabNormal+'</button><button class="tab'+(mode==='standby'?' on':'')+'" data-mode="standby">'+T.tabStandby+'</button></div>';
 
   if(mode==='standby'){
     const c=calcSby();
@@ -168,15 +180,15 @@ function render(){
     o+='<div class="card">';
     o+=field(T.sbyTypeLabel,sel('sbyType',[['other',T.sbyOther],['airport',T.sbyAirport]],S.sbyType));
     o+='<div class="row">'+field(T.sbyStart,inp('sbyStart','time',S.sbyStart))+field(T.sbyEnd,inp('sbyEnd','time',S.sbyEnd))+'</div>';
-    if(S.sbyType==='other') o+=tgl('isCalled',S.isCalled,S.isCalled?T.isCalledLabel:T.notCalledLabel);
+    if(S.sbyType==='other') o+=tgl('isCalled',S.isCalled,S.isCalled?T.isCalledLabel:T.notCalledLabel,T.calledHint);
     if(S.isCalled&&S.sbyType==='other') o+=field(T.called,inp('callTime','time',S.callTime));
     if(S.isCalled||S.sbyType==='airport'){
       o+='<div class="row">'+field(T.reportIn,inp('reportTime','time',S.reportTime))+field(T.reportOut,inp('offTime','time',S.offTime))+'</div>';
       o+=field(T.sectors,sel('sectors',[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8]],S.sectors));
     }
     if(S.isCalled&&S.sbyType==='other'){
-      o+=tgl('aug',S.aug,T.augLabel);
-      o+=tgl('split',S.split,T.splitLabel);
+      o+=tgl('aug',S.aug,T.augLabel,T.augHint);
+      o+=tgl('split',S.split,T.splitLabel,T.sbySplitHint);
     }
     o+='</div>';
     // Timeline
@@ -210,26 +222,41 @@ function render(){
     o+=stat(T.dutyCred,fmt(c.dc),c.type==='airport'?T.asbFullDuty:(c.called?T.sby25:T.sby25full));
     o+='</div>';
     // Verdict
-    const allOk=c.called?(c.fdpOk&&c.awOk&&c.sbyOk):c.sbyOk;
-    const fails=[c.called&&!c.fdpOk&&T.fdpOverLimit,c.called&&!c.awOk&&T.awakeOverMax,!c.sbyOk&&T.sbyOver16].filter(Boolean).join('. ');
+    const allOk=c.called?(c.fdpOk&&c.awOk&&c.sbyOk&&c.respOk):c.sbyOk;
+    const fails=[c.called&&!c.fdpOk&&T.fdpOverLimit,c.called&&!c.awOk&&T.awakeOverMax,!c.sbyOk&&(c.type==='airport'?T.asbOverMax:T.sbyOver16),c.called&&!c.respOk&&T.respTooShort].filter(Boolean).join('. ');
     o+='<div class="verdict '+(allOk?'ok':'fail')+'"><div class="verdict-dot"></div><div><div class="verdict-title">'+(allOk?T.sbyVerdictOk:T.breaksLimit)+'</div>'+(!allOk?'<div class="verdict-sub">'+fails+'</div>':'')+'</div></div>';
     o+='<div class="note">'+T.sbySource+'</div>';
 
   }else{
     const c=calcNorm();
+    o+='<div class="tabs" style="margin-bottom:12px"><button class="tab" style="'+(nView==='simple'?'background:#3D5A4C;color:#E9E4D6':'')+'" data-nview="simple">'+T.viewSimple+'</button><button class="tab" style="'+(nView==='advanced'?'background:#3D5A4C;color:#E9E4D6':'')+'" data-nview="advanced">'+T.viewAdvanced+'</button></div>';
+    if(nView==='simple'){
+      const sbase=lT2(N.report,N.sectors);const soff=tm(N.report)+sbase;
+      o+='<div class="card">';
+      o+='<div class="row">'+field(T.reportIn,inp('nReport','time',N.report))+field(T.sectors,sel('nSectors',[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8]],N.sectors))+'</div>';
+      o+='</div>';
+      o+='<div class="grid">';
+      o+=stat(T.baseFDP,fmt(sbase),N.sectors+' '+T.sekt+', '+N.report);
+      o+=stat(T.latestOff,tfmt(soff),T.latestOffSub,true);
+      o+='</div>';
+      o+='<div class="note">'+T.simpleNote+'</div>';
+    }else{
     o+='<div class="card">';
     o+='<div class="row">'+field(T.reportIn,inp('nReport','time',N.report))+field(T.reportOut,inp('nOff','time',N.off))+'</div>';
     o+='<div class="row">'+field(T.sectors,sel('nSectors',[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8]],N.sectors));
-    o+=field(T.tzLabel,sel('nTz',[[0,T.tz0],[1,T.tz1],[2,T.tz2],[3,T.tz3]],N.tz)+'<div class="hint">'+T.tzHint+'</div>')+'</div>';
-    o+=field(T.rotLabel,sel('nHrs',[[0,T.rotToday],[12,T.rot12],[24,T.rot24],[36,T.rot36],[48,T.rot48],[60,T.rot60],[72,T.rot72],[96,T.rot96],[120,T.rot120]],N.hrs)+'<div class="hint">'+T.rotHint+'</div>');
-    o+='<div class="row">'+field(T.prevDutyLabel,inp('nPrevDuty','number',N.prevDuty,'min="0" max="24" step="0.5"')+'<div class="hint">'+T.prevDutyHint+'</div>')+field(T.restBefore,inp('nPrevRest','number',N.prevRest,'min="0" max="48" step="0.5"'))+'</div>';
+    o+=field(T.tzLabel,sel('nTz',[[0,T.tz0],[1,T.tz1],[2,T.tz2],[3,T.tz3]],N.tz),T.tzHint)+'</div>';
+    o+=field(T.rotLabel,sel('nHrs',[[0,T.rotToday],[12,T.rot12],[24,T.rot24],[36,T.rot36],[48,T.rot48],[60,T.rot60],[72,T.rot72],[96,T.rot96],[120,T.rot120]],N.hrs),T.rotHint);
+    o+='<div class="row">'+field(T.prevDutyLabel,inp('nPrevDuty','number',N.prevDuty,'min="0" max="24" step="0.5"'),T.prevDutyHint)+field(T.restBefore,inp('nPrevRest','number',N.prevRest,'min="0" max="48" step="0.5"'))+'</div>';
     o+=field(T.restAfter,inp('nPostRest','number',N.postRest,'min="0" max="48" step="0.5"'));
-    o+=tgl('nAway',N.away,T.awayToggle);
+    o+=tgl('nAway',N.away,T.awayToggle,T.awayHint);
     o+='<div class="sep"></div>';
     o+=field(T.ifrLabel,sel('nRestFac',[['none',T.ifrNone],['class3','Class 3'],['class2','Class 2'],['class1','Class 1']],N.restFac));
     o+=field(T.extraCrew,sel('nExtraCrew',[[0,'0'],[1,'1'],[2,'2']],N.extraCrew));
-    o+=tgl('nSplit',N.split,T.splitDutyLabel);
+    o+=tgl('nSplit',N.split,T.splitDutyLabel,T.splitHint);
     if(N.split)o+=field(T.breakLabel,inp('nBreakH','number',N.breakH,'min="0" max="12" step="0.5"'));
+    o+=tgl('nExt',N.ext,T.extLabel,T.extHint);
+    if(c.extNA)o+='<div style="font-size:12px;color:#D9624A">'+T.extNotAllowed+'</div>';
+    o+=tgl('nCD',N.cd,T.cdLabel,T.cdHint);
     o+='</div>';
     // Acclimatisation
     o+='<div class="badge"><span class="badge-code" style="color:'+(c.acc.code==='X'?'#D9624A':'#E8A33D')+'">'+c.acc.code+'</span>'+c.acc.label+'<div class="badge-sub">'+c.tbl+'</div></div>';
@@ -252,6 +279,7 @@ function render(){
     const fails=[!c.fdpOk&&T.fdpOverLimit,!c.rOk&&T.restUnderMin].filter(Boolean).join('. ');
     o+='<div class="verdict '+(allOk?'ok':'fail')+'"><div class="verdict-dot"></div><div><div class="verdict-title">'+(allOk?T.normVerdictOk:T.breaksLimit)+'</div>'+(!allOk?'<div class="verdict-sub">'+fails+'</div>':'')+'</div></div>';
     o+='<div class="note">'+T.normSource+'</div>';
+    }
   }
   document.getElementById('app').innerHTML=o;
   bind();
@@ -262,6 +290,7 @@ function bind(){
   const $=id=>document.getElementById(id);
   $('langBtn')?.addEventListener('click',()=>{lang=lang==='sv'?'en':'sv';render()});
   document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.mode;render()}));
+  document.querySelectorAll('[data-nview]').forEach(b=>b.addEventListener('click',()=>{nView=b.dataset.nview;render()}));
   // Standby
   const sMap={sbyType:[S,'sbyType'],sbyStart:[S,'sbyStart'],sbyEnd:[S,'sbyEnd'],callTime:[S,'callTime'],reportTime:[S,'reportTime'],offTime:[S,'offTime'],sectors:[S,'sectors','int']};
   Object.entries(sMap).forEach(([id,[obj,key,type]])=>{const el=$(id);if(el)el.addEventListener('change',()=>{obj[key]=type==='int'?+el.value:el.value;render()})});
@@ -276,6 +305,8 @@ function bind(){
     else if(k==='split')S.split=!S.split;
     else if(k==='nAway')N.away=!N.away;
     else if(k==='nSplit')N.split=!N.split;
+    else if(k==='nExt')N.ext=!N.ext;
+    else if(k==='nCD')N.cd=!N.cd;
     render()})});
 }
 
