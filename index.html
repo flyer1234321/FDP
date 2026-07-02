@@ -14,20 +14,20 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,-apple-system,sans-serif;background:#0E1B17;color:#E9E4D6;
-  padding:env(safe-area-inset-top,12px) 14px calc(env(safe-area-inset-bottom,12px)+40px);
+  padding:env(safe-area-inset-top,16px) 18px calc(env(safe-area-inset-bottom,16px)+40px);
   -webkit-text-size-adjust:100%;min-height:100vh}
 .wrap{max-width:480px;margin:0 auto}
 h1{font-size:22px;font-weight:700;color:#F4EFE3}
 .ref{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.12em;color:#5C7A6A;text-transform:uppercase;margin-bottom:4px}
-.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;padding-top:8px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-top:14px}
 .lang-btn{background:#1C2F26;border:1px solid #2C463C;border-radius:8px;padding:6px 12px;color:#E8A33D;font-size:13px;font-weight:700;cursor:pointer;font-family:ui-monospace,monospace;margin-top:4px;min-height:36px}
-.tabs{display:flex;gap:3px;margin-bottom:16px;background:#16261F;border:1px solid #2C463C;border-radius:10px;padding:3px}
-.tab{flex:1;background:transparent;color:#9DB5A8;border:none;border-radius:8px;padding:10px 8px;font-size:14px;font-weight:600;cursor:pointer;text-align:center}
+.tabs{display:flex;gap:3px;margin-bottom:18px;background:#16261F;border:1px solid #2C463C;border-radius:10px;padding:4px}
+.tab{flex:1;background:transparent;color:#9DB5A8;border:none;border-radius:8px;padding:11px 10px;font-size:14px;font-weight:600;cursor:pointer;text-align:center}
 .tab.on{background:#E8A33D;color:#1A1208}
-.card{background:#16261F;border:1px solid #2C463C;border-radius:12px;padding:16px;margin-bottom:14px;display:flex;flex-direction:column;gap:14px}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.fl{font-size:11px;color:#7FA98C;margin-bottom:5px}
-input[type="time"],input[type="number"],select{background:#1C2F26;border:1px solid #2C463C;color:#E9E4D6;border-radius:8px;padding:10px 12px;font-family:ui-monospace,monospace;font-size:16px;width:100%;min-height:44px}
+.card{background:#16261F;border:1px solid #2C463C;border-radius:12px;padding:20px;margin-bottom:16px;display:flex;flex-direction:column;gap:16px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fl{font-size:12px;color:#7FA98C;margin-bottom:6px}
+input[type="time"],input[type="number"],select{background:#1C2F26;border:1px solid #2C463C;color:#E9E4D6;border-radius:8px;padding:12px 14px;font-family:ui-monospace,monospace;font-size:16px;width:100%;min-height:48px}
 select{font-size:15px;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237FA98C' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
 .tgl{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;min-height:44px}
 .tgl-box{width:44px;height:26px;border-radius:13px;background:#2C463C;position:relative;transition:background .2s;flex-shrink:0}
@@ -35,16 +35,16 @@ select{font-size:15px;-webkit-appearance:none;appearance:none;background-image:u
 .tgl-dot{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#0E1B17;transition:left .2s}
 .tgl-box.on .tgl-dot{left:21px}
 .tgl-label{font-size:13px;color:#C9D9CE}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.stat{background:#16261F;border:1px solid #2C463C;border-radius:10px;padding:10px 12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.stat{background:#16261F;border:1px solid #2C463C;border-radius:10px;padding:14px 16px}
 .stat.bad{border-color:#A8493A}
-.stat-lbl{font-size:10px;color:#7FA98C;margin-bottom:3px}
-.stat-val{font-family:ui-monospace,monospace;font-size:19px;font-weight:700;color:#F4EFE3}
+.stat-lbl{font-size:11px;color:#7FA98C;margin-bottom:4px}
+.stat-val{font-family:ui-monospace,monospace;font-size:20px;font-weight:700;color:#F4EFE3}
 .stat-val.accent{color:#E8A33D}
 .stat-val.bad{color:#E89280}
 .stat-sub{font-size:10px;color:#5C7A6A;margin-top:2px}
 .stat-sub.bad{color:#D9624A}
-.verdict{border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.verdict{border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;margin-bottom:16px}
 .verdict.ok{background:rgba(127,169,140,.12);border:1px solid #4A6B57}
 .verdict.fail{background:rgba(217,98,74,.12);border:1px solid #A8493A}
 .verdict-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
@@ -194,7 +194,7 @@ function render(){
     // Timeline
     const tlEnd=c.called?c.om:c.se;const span=Math.max(tlEnd-c.s0+60,480);
     const pc=m=>Math.min(100,Math.max(0,(m-c.s0)/span*100));
-    o+='<div class="card"><div class="disrupt-title">TIMELINE</div><div style="position:relative;height:56px"><div class="tl-bar">';
+    o+='<div class="card"><div class="disrupt-title">TIMELINE</div><div style="position:relative;height:64px"><div class="tl-bar">';
     if(!c.called&&S.sbyType==='other'){
       o+='<div class="tl-seg" style="left:'+pc(c.s0)+'%;width:'+(pc(c.se)-pc(c.s0))+'%;background:#3D5A4C"></div>';
     }else{
@@ -235,6 +235,16 @@ function render(){
       o+='<div class="card">';
       o+='<div class="row">'+field(T.reportIn,inp('nReport','time',N.report))+field(T.sectors,sel('nSectors',[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8]],N.sectors))+'</div>';
       o+='</div>';
+      // Simple Timeline
+      {const stm=tm(N.report),sSpan=sbase+60;
+      const spc=m=>Math.min(100,Math.max(0,(m-stm)/sSpan*100));
+      const smk=(p,l,ti,ac)=>'<div class="tl-mk" style="left:'+p+'%"><div class="tl-mk-line" style="background:'+(ac?'#E8A33D':'#5C7A6A')+'"></div><div class="tl-mk-time" style="color:'+(ac?'#E8A33D':'#9DB5A8')+'">'+ti+'</div><div class="tl-mk-label">'+l+'</div></div>';
+      o+='<div class="card"><div class="disrupt-title">TIMELINE</div><div style="position:relative;height:64px"><div class="tl-bar">';
+      o+='<div class="tl-seg" style="left:0%;width:'+spc(soff)+'%;background:#E8A33D;opacity:0.7;border-radius:5px"></div>';
+      o+='</div>';
+      o+=smk(0,'Report',tfmt(stm));
+      o+=smk(spc(soff),'Max',tfmt(soff),true);
+      o+='</div></div>';}
       o+='<div class="grid">';
       o+=stat(T.baseFDP,fmt(sbase),N.sectors+' '+T.sekt+', '+N.report);
       o+=stat(T.latestOff,tfmt(soff),T.latestOffSub,true);
@@ -268,6 +278,25 @@ function render(){
     o+='<span class="tag '+(c.dis.night?'on':'off')+'">'+T.nightDuty+'</span>';
     o+='<div style="margin-top:8px;font-size:13px">'+T.localNights+' ('+N.postRest+'h): <b style="color:#E8A33D">'+c.pn+'</b></div>';
     o+='<div class="disrupt-info">'+(isD?T.disruptiveWarn:T.notDisruptive)+'</div></div>';
+    // Advanced Timeline
+    {const limEnd=c.rm+c.lim;
+    const tlEnd=Math.max(c.om,limEnd);
+    const tlSpan=Math.max(tlEnd-c.rm+60,300);
+    const apc=m=>Math.min(100,Math.max(0,(m-c.rm)/tlSpan*100));
+    const amk=(p,l,ti,ac)=>'<div class="tl-mk" style="left:'+p+'%"><div class="tl-mk-line" style="background:'+(ac?'#E8A33D':'#5C7A6A')+'"></div><div class="tl-mk-time" style="color:'+(ac?'#E8A33D':'#9DB5A8')+'">'+ti+'</div><div class="tl-mk-label">'+l+'</div></div>';
+    o+='<div class="card"><div class="disrupt-title">TIMELINE · PLANERAD vs MAX</div><div style="position:relative;height:64px"><div class="tl-bar">';
+    o+='<div class="tl-seg" style="left:0%;width:'+apc(limEnd)+'%;background:#2C463C;border-radius:5px"></div>';
+    if(c.fdpOk){
+      o+='<div class="tl-seg" style="left:0%;width:'+apc(c.om)+'%;background:#E8A33D;border-radius:5px"></div>';
+    }else{
+      o+='<div class="tl-seg" style="left:0%;width:'+apc(limEnd)+'%;background:#E8A33D;border-radius:5px 0 0 5px"></div>';
+      o+='<div class="tl-seg" style="left:'+apc(limEnd)+'%;width:'+Math.max(0,apc(c.om)-apc(limEnd))+'%;background:#D9624A;border-radius:0 5px 5px 0"></div>';
+    }
+    o+='</div>';
+    o+=amk(0,'Report',tfmt(c.rm));
+    o+=amk(apc(limEnd),'Max',tfmt(limEnd),true);
+    o+=amk(apc(c.om),c.fdpOk?'Off':'Off ⚠',tfmt(c.om),!c.fdpOk);
+    o+='</div></div>';}
     // Results
     o+='<div class="grid">';
     o+=stat(T.actualFDP,fmt(c.act),c.fdpOk?T.ok:T.over,false,!c.fdpOk);
