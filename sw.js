@@ -1,9 +1,9 @@
-const CACHE = 'fdp-v11';
+const CACHE = 'fdp-v12';
 
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
-      .then(c => c.addAll(['./', './index.html']))
+      .then(c => c.addAll(['./', './index.html', './manifest.json', './icon.svg']))
       .then(() => self.skipWaiting())
   );
 });
@@ -18,12 +18,17 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(
-    fetch(e.request)
-      .then(r => {
-        const rc = r.clone();
-        caches.open(CACHE).then(c => c.put(e.request, rc));
-        return r;
-      })
-      .catch(() => caches.match(e.request))
+    caches.match(e.request).then(cachedResponse => {
+      const fetchPromise = fetch(e.request).then(networkResponse => {
+        caches.open(CACHE).then(cache => {
+          cache.put(e.request, networkResponse.clone());
+        });
+        return networkResponse;
+      }).catch(() => {
+        // Ignore fetch errors if offline
+      });
+      return cachedResponse || fetchPromise;
+    })
   );
 });
+
