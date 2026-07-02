@@ -1,782 +1,318 @@
-import React, { useState, useMemo } from "react";
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FDP">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0E1B17">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjQwIiBmaWxsPSIjMEUxQjE3Ii8+PHRleHQgeD0iOTAiIHk9IjEwNSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI0U4QTMzRCIgZm9udC1mYW1pbHk9InN5c3RlbS11aSIgZm9udC13ZWlnaHQ9IjcwMCIgZm9udC1zaXplPSI1NiI+RkRQPC90ZXh0Pjwvc3ZnPg==">
+<title>FDP-räknare</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#0E1B17;color:#E9E4D6;
+  padding:env(safe-area-inset-top,12px) 14px calc(env(safe-area-inset-bottom,12px)+40px);
+  -webkit-text-size-adjust:100%;min-height:100vh}
+.wrap{max-width:480px;margin:0 auto}
+h1{font-size:22px;font-weight:700;color:#F4EFE3}
+.ref{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.12em;color:#5C7A6A;text-transform:uppercase;margin-bottom:4px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;padding-top:8px}
+.lang-btn{background:#1C2F26;border:1px solid #2C463C;border-radius:8px;padding:6px 12px;color:#E8A33D;font-size:13px;font-weight:700;cursor:pointer;font-family:ui-monospace,monospace;margin-top:4px;min-height:36px}
+.tabs{display:flex;gap:3px;margin-bottom:16px;background:#16261F;border:1px solid #2C463C;border-radius:10px;padding:3px}
+.tab{flex:1;background:transparent;color:#9DB5A8;border:none;border-radius:8px;padding:10px 8px;font-size:14px;font-weight:600;cursor:pointer;text-align:center}
+.tab.on{background:#E8A33D;color:#1A1208}
+.card{background:#16261F;border:1px solid #2C463C;border-radius:12px;padding:16px;margin-bottom:14px;display:flex;flex-direction:column;gap:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fl{font-size:11px;color:#7FA98C;margin-bottom:5px}
+input[type="time"],input[type="number"],select{background:#1C2F26;border:1px solid #2C463C;color:#E9E4D6;border-radius:8px;padding:10px 12px;font-family:ui-monospace,monospace;font-size:16px;width:100%;min-height:44px}
+select{font-size:15px;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237FA98C' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.tgl{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;min-height:44px}
+.tgl-box{width:44px;height:26px;border-radius:13px;background:#2C463C;position:relative;transition:background .2s;flex-shrink:0}
+.tgl-box.on{background:#E8A33D}
+.tgl-dot{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#0E1B17;transition:left .2s}
+.tgl-box.on .tgl-dot{left:21px}
+.tgl-label{font-size:13px;color:#C9D9CE}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{background:#16261F;border:1px solid #2C463C;border-radius:10px;padding:10px 12px}
+.stat.bad{border-color:#A8493A}
+.stat-lbl{font-size:10px;color:#7FA98C;margin-bottom:3px}
+.stat-val{font-family:ui-monospace,monospace;font-size:19px;font-weight:700;color:#F4EFE3}
+.stat-val.accent{color:#E8A33D}
+.stat-val.bad{color:#E89280}
+.stat-sub{font-size:10px;color:#5C7A6A;margin-top:2px}
+.stat-sub.bad{color:#D9624A}
+.verdict{border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.verdict.ok{background:rgba(127,169,140,.12);border:1px solid #4A6B57}
+.verdict.fail{background:rgba(217,98,74,.12);border:1px solid #A8493A}
+.verdict-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.verdict.ok .verdict-dot{background:#7FA98C}
+.verdict.fail .verdict-dot{background:#D9624A}
+.verdict-title{font-weight:600;font-size:14px}
+.verdict.ok .verdict-title{color:#C9E0D0}
+.verdict.fail .verdict-title{color:#F0C4B9}
+.verdict-sub{font-size:12px;color:#9DB5A8;margin-top:2px}
+.note{font-size:11px;color:#4A6356;margin-top:10px;line-height:1.5}
+.hint{font-size:11px;color:#5C7A6A;margin-top:5px;line-height:1.4}
+.tag{font-size:11px;padding:3px 8px;border-radius:6px;display:inline-block;margin:3px 7px 3px 0}
+.tag.on{background:rgba(232,163,61,.2);color:#E8A33D;font-weight:600}
+.tag.off{background:rgba(44,70,60,.3);color:#5C7A6A}
+.badge{background:rgba(127,169,140,.08);border:1px solid #2C463C;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#9DB5A8}
+.badge-code{font-family:ui-monospace,monospace;font-weight:700;font-size:16px;margin-right:8px}
+.badge-sub{font-size:11px;color:#5C7A6A;margin-top:4px}
+.disrupt{background:rgba(232,163,61,.08);border:1px solid #2C463C;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#C9D9CE}
+.disrupt-title{font-family:ui-monospace,monospace;font-size:10px;color:#5C7A6A;letter-spacing:.08em;margin-bottom:6px}
+.disrupt-info{font-size:11px;color:#7FA98C;margin-top:4px}
+.sep{height:1px;background:#2C463C;margin:12px 0}
+.tl-bar{position:absolute;top:22px;left:0;right:0;height:10px;background:#0E1B17;border-radius:5px;overflow:hidden}
+.tl-seg{position:absolute;top:0;bottom:0}
+.tl-mk{position:absolute;top:0;text-align:center;transform:translateX(-50%)}
+.tl-mk-line{width:2px;height:32px;margin:0 auto}
+.tl-mk-time{font-size:10px;margin-top:3px;font-family:ui-monospace,monospace;white-space:nowrap}
+.tl-mk-label{font-size:9px;color:#5C7A6A;white-space:nowrap}
+.hidden{display:none}
+.info-i{display:inline-flex;width:18px;height:18px;border:1px solid #5C7A6A;border-radius:50%;color:#7FA98C;font-size:11px;align-items:center;justify-content:center;margin-left:8px;cursor:pointer;font-family:ui-monospace,monospace;flex-shrink:0;user-select:none}
+.hint-box{font-size:12px;color:#9DB5A8;line-height:1.5;margin-top:6px;padding:8px 12px;background:rgba(127,169,140,.07);border-left:2px solid #E8A33D;border-radius:0 8px 8px 0;display:none}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
 
-/* ─── i18n ─────────────────────────────────────────────────────────────────── */
-const i18n = {
-  sv: {
-    title: "FDP-räknare",
-    ref: "ORO.FTL · CS FTL.1",
-    tabStandby: "Standby",
-    tabNormal: "Vanlig tjänst.",
-    sbyTypeLabel: "Typ av standby",
-    sbyOther: "Annan standby (hemma)",
-    sbyAirport: "Flygplatsstandby (ASB)",
-    sbyStart: "SBY start",
-    sbyEnd: "SBY slut",
-    called: "Utkallad (kontaktad)",
-    reportIn: "Incheckning",
-    reportOut: "Utcheckning",
-    sectors: "Sektorer",
-    augLabel: "Augmented (höjer tröskel till 8h)",
-    splitLabel: "Split duty (höjer tröskel till 8h)",
-    sbyBeforeOther: "SBY till report",
-    sbyBeforeASB: "ASB före FDP",
-    reduction: "Reduktion",
-    nightCreditSub: "nattkredit",
-    noNightCredit: "ingen nattkredit",
-    asbReduces: ">4h reducerar",
-    baseFDP: "Bas-FDP (T2)",
-    redLimit: "Red. FDP-gräns",
-    afterReduction: "efter reduktion",
-    actualFDP: "Faktisk FDP",
-    ok: "OK",
-    over: "ÖVER",
-    awakeTime: "Vaken tid (OM-A Policy)",
-    asbCombined: "ASB+FDP komb.",
-    within: "inom",
-    dutyCred: "Duty-kredit",
-    asbFullDuty: "ASB = full duty",
-    sby25: "25% av SBY till report",
-    sby25full: "25% av hela SBY",
-    withinLimits: "Inom gräns",
-    overLimit: "ÖVER gräns",
-    sbyVerdictOk: "Inom ORO.FTL.225",
-    fdpOverLimit: "FDP över gräns",
-    awakeOverMax: "Vaken tid över max (OM-A)",
-    sbyOver16: "SBY över 16h",
-    asbOverMax: "ASB över 12h (OM-A) eller komb. över 16h",
-    respTooShort: "Under 60 min mellan utkallelse och report (OM-A)",
-    breaksLimit: "Bryter mot gräns",
-    sbySource: "Källa: ORO.FTL.225, CS FTL.1.225, ORO.FTL.205(b)(1) Table 2 — Transportstyrelsens CCL v2.0 (2018-09-18).",
-    tzLabel: "Tidsskillnad destination",
-    tz0: "Samma tid (Norden, Centraleuropa)",
-    tz1: "1h (Baltikum, London, Portugal)",
-    tz2: "2h (Kanarieöarna, Island)",
-    tz3: "3h (Turkiet, Grekland vintertid)",
-    tzHint: "Skillnad mot din hemmabas. Ex från CET: Berlin, Rom = 0h. Riga, London = 1h.",
-    rotLabel: "Hur länge sedan checkade du in första gången denna resa?",
-    rotToday: "Idag (första passet i rotationen)",
-    rot12: "Ca 12h sedan", rot24: "Ca 1 dygn sedan", rot36: "Ca 1,5 dygn sedan",
-    rot48: "Ca 2 dygn sedan", rot60: "Ca 2,5 dygn sedan", rot72: "Ca 3 dygn sedan",
-    rot96: "Ca 4 dygn sedan", rot120: "5+ dygn sedan",
-    rotHint: "T.ex. checkade in i ARN igår morse, flög till Riga (1h skillnad), sov där, flyger hem idag = ca 24h. Dagtur utan övernattning = \"Idag\". Vid 0–1h skillnad påverkar detta inte FDP-gränsen alls.",
-    restBefore: "Vila innan (h)",
-    restAfter: "Vila efter (h)",
-    awayToggle: "Vila borta från hemmabas",
-    ifrLabel: "In-flight rest — facilitetsklass",
-    ifrNone: "Ingen",
-    extraCrew: "Extra besättningsmedlemmar",
-    splitDutyLabel: "Split duty",
-    breakLabel: "Rast på marken (h, min 3h)",
-    appliedLimit: "Tillämpad gräns",
-    restBeforeLabel: "Vila innan",
-    underMin: "UNDER",
-    acclimB: "Akklimatiserad till referenstid",
-    acclimD: "Akklimatiserad till ny plats",
-    acclimX: "Okänt akklimatiseringstillstånd",
-    acclimBadge: "inom 2h-bandet",
-    disruptiveTitle: "DISRUPTIVE SCHEDULE · LOKAL NATT",
-    earlyStart: "Early start (05–06)",
-    lateFinish: "Late finish (23–02)",
-    nightDuty: "Night duty (02–05)",
-    localNights: "Lokala nätter i efterföljande vila",
-    disruptiveWarn: "Disruptive schedule — kontrollera att övergångar inkluderar rätt antal lokala nätter (CS FTL.1.235(a)). Vid 4+ disruptive duties mellan extended recovery rests krävs 60h extended recovery.",
-    notDisruptive: "Ej disruptive schedule.",
-    normVerdictOk: "Inom ORO.FTL.205 / .235",
-    fdpOverLimit: "FDP över gräns",
-    restUnderMin: "Vila under min.",
-    normSource: "Källa: ORO.FTL.205, .105(1), CS FTL.1.205(c), .220, .235 — Transportstyrelsens CCL v2.0. Sverige: early type disruptive schedules.",
-    noExtension: "ingen förlängning",
-    ifrSrc: "In-flight rest",
-    splitSrc: "Split duty: bas + 50% av",
-    hRest: "h rast",
-    extra: "extra",
-    sekt: "sekt",
-    /* NEW strings */
-    isCalledLabel: "Utkallad till flygning",
-    notCalledLabel: "Ingen utkallelse (enbart SBY)",
-    sbyFullPeriod: "Hela SBY-perioden",
-    prevDutyLabel: "Föregående tjänstgöring (h)",
-    prevDutyHint: "Längd på senaste duty-passet innan vilan. Vila måste vara minst lika lång som föregående duty (ORO.FTL.235).",
-    minRestReq: "Krav: max av",
-    extLabel: "Planerad förlängning (E1, +1h utan in-flight rest)",
-    cdLabel: "Commander's discretion (max +2h)",
-    extSrc: "Förlängning (CS FTL.1.205(b))",
-    cdSuffix: "+ CD max 2h",
-    extNotAllowed: "Förlängning ej tillåten för denna starttid/sektorantal, eller kombinerad med split/in-flight rest.",
-    calledHint: "Av = ingen utkallelse skedde. Då beräknas endast duty-kredit (25% av hela SBY-perioden).",
-    augHint: "Slå på om FDP:n efter utkallelsen flygs med förstärkt besättning och in-flight rest — reduktionströskeln höjs då från 6h till 8h (CS FTL.1.225(b)(8)).",
-    sbySplitHint: "Slå på om FDP:n efter utkallelsen är en split duty — reduktionströskeln höjs då från 6h till 8h (CS FTL.1.225(b)(8)).",
-    awayHint: "Vila som påbörjas borta från hemmabas: minimikravet är 10h istället för 12h (ORO.FTL.235(b)).",
-    splitHint: "Rast ≥3h på marken förlänger max-FDP med upp till 50% av rasten. Rasten räknas i sin helhet som FDP. Kan ej kombineras med E1 eller in-flight rest (CS FTL.1.220).",
-    extHint: "Planerad i förväg, max +1h, max 2 ggr per 7 dagar. Kräver utökad vila: pre- och postflight +2h, eller postflight +4h. Ej tillåten vid vissa starttider/sektorantal. Kan ej kombineras med split duty eller in-flight rest (CS FTL.1.205(b)).",
-    cdHint: "Endast vid oförutsedda omständigheter som uppstår vid eller efter incheckning — kan aldrig planeras. Max +2h på gällande gräns. Om ökningen överskrids på sista sektorn p.g.a. oförutsedda omständigheter efter start får flygningen fortsätta till planerad destination eller alternativ. Efterföljande vila får aldrig understiga 10h. Befälhavaren ska rapportera användningen (ORO.FTL.205(f)).",
-    viewSimple: "Enkel",
-    viewAdvanced: "Avancerad",
-    latestOff: "Senaste utcheckning",
-    latestOffSub: "utan förlängning",
-    simpleNote: "Max-FDP ur Table 2 (akklimatiserad besättning) baserat på incheckningstid i referenstid/lokaltid. Utan extension, split duty, in-flight rest eller standby-reduktion — växla till Avancerad för dessa.",
-  },
-  en: {
-    title: "FDP Calculator",
-    ref: "ORO.FTL · CS FTL.1",
-    tabStandby: "Standby",
-    tabNormal: "Normal duty",
-    sbyTypeLabel: "Standby type",
-    sbyOther: "Other standby (home)",
-    sbyAirport: "Airport standby (ASB)",
-    sbyStart: "SBY start",
-    sbyEnd: "SBY end",
-    called: "Called (contacted)",
-    reportIn: "Report on",
-    reportOut: "Report off",
-    sectors: "Sectors",
-    augLabel: "Augmented (raises threshold to 8h)",
-    splitLabel: "Split duty (raises threshold to 8h)",
-    sbyBeforeOther: "SBY to report",
-    sbyBeforeASB: "ASB before FDP",
-    reduction: "Reduction",
-    nightCreditSub: "night credit",
-    noNightCredit: "no night credit",
-    asbReduces: ">4h reduces",
-    baseFDP: "Base FDP (T2)",
-    redLimit: "Reduced FDP limit",
-    afterReduction: "after reduction",
-    actualFDP: "Actual FDP",
-    ok: "OK",
-    over: "EXCEEDED",
-    awakeTime: "Awake time (OM-A Policy)",
-    asbCombined: "ASB+FDP combined",
-    within: "within",
-    dutyCred: "Duty credit",
-    asbFullDuty: "ASB = full duty",
-    sby25: "25% of SBY to report",
-    sby25full: "25% of full SBY",
-    withinLimits: "Within limits",
-    overLimit: "EXCEEDS limit",
-    sbyVerdictOk: "Within ORO.FTL.225",
-    fdpOverLimit: "FDP exceeds limit",
-    awakeOverMax: "Awake time over max (OM-A)",
-    sbyOver16: "SBY over 16h",
-    asbOverMax: "ASB over 12h (OM-A) or combined over 16h",
-    respTooShort: "Less than 60 min call-to-report (OM-A)",
-    breaksLimit: "Limit exceeded",
-    sbySource: "Source: ORO.FTL.225, CS FTL.1.225, ORO.FTL.205(b)(1) Table 2 — Swedish Transport Agency CCL v2.0 (2018-09-18).",
-    tzLabel: "Time zone difference (destination)",
-    tz0: "Same time (Nordics, Central Europe)",
-    tz1: "1h (Baltics, London, Portugal)",
-    tz2: "2h (Canary Islands, Iceland)",
-    tz3: "3h (Turkey, Greece winter)",
-    tzHint: "Difference from ARN/CPH. Berlin, Rome, Oslo = 0h. Riga, Tallinn, London = 1h. Within Europe max ~2–3h.",
-    rotLabel: "How long since your first check-in this trip?",
-    rotToday: "Today (first duty in rotation)",
-    rot12: "About 12h ago", rot24: "About 1 day ago", rot36: "About 1.5 days ago",
-    rot48: "About 2 days ago", rot60: "About 2.5 days ago", rot72: "About 3 days ago",
-    rot96: "About 4 days ago", rot120: "5+ days ago",
-    rotHint: "E.g. checked in at ARN yesterday morning, flew to Riga (1h diff), slept there, flying home today = ~24h. Day trip without overnight = \"Today\". At 0–1h difference this has no effect on FDP limits.",
-    restBefore: "Rest before (h)",
-    restAfter: "Rest after (h)",
-    awayToggle: "Rest away from home base",
-    ifrLabel: "In-flight rest — facility class",
-    ifrNone: "None",
-    extraCrew: "Additional crew members",
-    splitDutyLabel: "Split duty",
-    breakLabel: "Ground break (h, min 3h)",
-    appliedLimit: "Applied limit",
-    restBeforeLabel: "Rest before",
-    underMin: "UNDER",
-    acclimB: "Acclimatised to reference time",
-    acclimD: "Acclimatised to new location",
-    acclimX: "Unknown acclimatisation state",
-    acclimBadge: "within 2h band",
-    disruptiveTitle: "DISRUPTIVE SCHEDULE · LOCAL NIGHT",
-    earlyStart: "Early start (05–06)",
-    lateFinish: "Late finish (23–02)",
-    nightDuty: "Night duty (02–05)",
-    localNights: "Local nights in subsequent rest",
-    disruptiveWarn: "Disruptive schedule — verify transitions include correct number of local nights (CS FTL.1.235(a)). With 4+ disruptive duties between extended recovery rests, 60h extended recovery required.",
-    notDisruptive: "Not a disruptive schedule.",
-    normVerdictOk: "Within ORO.FTL.205 / .235",
-    fdpOverLimit: "FDP exceeds limit",
-    restUnderMin: "Rest below minimum.",
-    normSource: "Source: ORO.FTL.205, .105(1), CS FTL.1.205(c), .220, .235 — Swedish Transport Agency CCL v2.0. Sweden: early type disruptive schedules.",
-    noExtension: "no extension",
-    ifrSrc: "In-flight rest",
-    splitSrc: "Split duty: base + 50% of",
-    hRest: "h break",
-    extra: "extra",
-    sekt: "sect",
-    /* NEW strings */
-    isCalledLabel: "Called to flight duty",
-    notCalledLabel: "No callout (SBY only)",
-    sbyFullPeriod: "Full SBY period",
-    prevDutyLabel: "Previous duty length (h)",
-    prevDutyHint: "Length of the preceding duty period before rest. Rest must be at least as long as previous duty (ORO.FTL.235).",
-    minRestReq: "Required: max of",
-    extLabel: "Planned extension (E1, +1h without in-flight rest)",
-    cdLabel: "Commander's discretion (max +2h)",
-    extSrc: "Extension (CS FTL.1.205(b))",
-    cdSuffix: "+ CD max 2h",
-    extNotAllowed: "Extension not allowed for this start time/sector count, or combined with split/in-flight rest.",
-    calledHint: "Off = no callout occurred. Only duty credit is calculated (25% of the full SBY period).",
-    augHint: "Enable if the FDP after callout is flown with augmented crew and in-flight rest — the reduction threshold rises from 6h to 8h (CS FTL.1.225(b)(8)).",
-    sbySplitHint: "Enable if the FDP after callout is a split duty — the reduction threshold rises from 6h to 8h (CS FTL.1.225(b)(8)).",
-    awayHint: "Rest commencing away from home base: minimum requirement is 10h instead of 12h (ORO.FTL.235(b)).",
-    splitHint: "Ground break ≥3h extends max FDP by up to 50% of the break. The break counts in full as FDP. Cannot be combined with E1 or in-flight rest (CS FTL.1.220).",
-    extHint: "Planned in advance, max +1h, max twice per 7 days. Requires increased rest: pre- and post-flight +2h, or post-flight +4h. Not allowed at certain start times/sector counts. Cannot be combined with split duty or in-flight rest (CS FTL.1.205(b)).",
-    cdHint: "Only for unforeseen circumstances arising at or after reporting — can never be planned. Max +2h on the applicable limit. If on the final sector the allowed increase is exceeded due to unforeseen circumstances after take-off, the flight may continue to the planned destination or alternate. Subsequent rest never below 10h. The commander must report its use (ORO.FTL.205(f)).",
-    viewSimple: "Simple",
-    viewAdvanced: "Advanced",
-    latestOff: "Latest check-out",
-    latestOffSub: "without extension",
-    simpleNote: "Max FDP from Table 2 (acclimatised crew) based on check-in at reference/local time. Without extension, split duty, in-flight rest or standby reduction — switch to Advanced for those.",
-  },
-};
+<script>
+"use strict";
+let _hid=0;
+window.togHint=function(id,el){const h=document.getElementById(id);const open=h.style.display==='block';h.style.display=open?'none':'block';el.style.borderColor=open?'#5C7A6A':'#E8A33D';el.style.color=open?'#7FA98C':'#E8A33D'};
+// ─── i18n ───────────────────────────────────────────────────────────────
+const L={sv:{title:"FDP-räknare",ref:"ORO.FTL · CS FTL.1",tabStandby:"Standby",tabNormal:"Vanlig tjänst.",sbyTypeLabel:"Typ av standby",sbyOther:"Annan standby (hemma)",sbyAirport:"Flygplatsstandby (ASB)",sbyStart:"SBY start",sbyEnd:"SBY slut",called:"Utkallad (kontaktad)",reportIn:"Incheckning",reportOut:"Utcheckning",sectors:"Sektorer",augLabel:"Augmented (höjer tröskel till 8h)",splitLabel:"Split duty (höjer tröskel till 8h)",sbyBeforeOther:"SBY till report",sbyBeforeASB:"ASB före FDP",reduction:"Reduktion",nightCreditSub:"nattkredit",noNightCredit:"ingen nattkredit",asbReduces:">4h reducerar",baseFDP:"Bas-FDP (T2)",redLimit:"Red. FDP-gräns",afterReduction:"efter reduktion",actualFDP:"Faktisk FDP",ok:"OK",over:"ÖVER",awakeTime:"Vaken tid (OM-A Policy)",asbCombined:"ASB+FDP komb.",within:"inom",dutyCred:"Duty-kredit",asbFullDuty:"ASB = full duty",sby25:"25% av SBY till report",sby25full:"25% av hela SBY",withinLimits:"Inom gräns",overLimit:"ÖVER gräns",sbyVerdictOk:"Inom ORO.FTL.225",fdpOverLimit:"FDP över gräns",awakeOverMax:"Vaken tid över max (OM-A)",sbyOver16:"SBY över 16h",asbOverMax:"ASB över 12h (OM-A) eller komb. över 16h",respTooShort:"Under 60 min mellan utkallelse och report (OM-A)",breaksLimit:"Bryter mot gräns",sbySource:"Källa: ORO.FTL.225, CS FTL.1.225, ORO.FTL.205(b)(1) Table 2.",tzLabel:"Tidsskillnad destination",tz0:"Samma tid (Norden, Centraleuropa)",tz1:"1h (Baltikum, London, Portugal)",tz2:"2h (Kanarieöarna, Island)",tz3:"3h (Turkiet, Grekland vintertid)",tzHint:"Skillnad mot din hemmabas. Ex från CET: Berlin, Rom = 0h. Riga, London = 1h.",rotLabel:"Hur länge sedan 1:a incheckning?",rotToday:"Idag (första passet)",rot12:"Ca 12h",rot24:"Ca 1 dygn",rot36:"Ca 1,5 dygn",rot48:"Ca 2 dygn",rot60:"Ca 2,5 dygn",rot72:"Ca 3 dygn",rot96:"Ca 4 dygn",rot120:"5+ dygn",rotHint:"Vid 0-1h TZ-skillnad påverkar detta inte FDP alls.",restBefore:"Vila innan (h)",restAfter:"Vila efter (h)",awayToggle:"Vila borta från hemmabas",ifrLabel:"In-flight rest — klass",ifrNone:"Ingen",extraCrew:"Extra besättning",splitDutyLabel:"Split duty",breakLabel:"Rast (h, min 3h)",appliedLimit:"Tillämpad gräns",restBeforeLabel:"Vila innan",underMin:"UNDER",acclimB:"Akklimatiserad till referenstid",acclimD:"Akklimatiserad till ny plats",acclimX:"Okänt akklimatiseringstillstånd",acclimBadge:"inom 2h-bandet",disruptiveTitle:"DISRUPTIVE SCHEDULE · LOKAL NATT",earlyStart:"Early start (05–06)",lateFinish:"Late finish (23–02)",nightDuty:"Night duty (02–05)",localNights:"Lokala nätter i vila",disruptiveWarn:"Disruptive — kontrollera lokala nätter (CS FTL.1.235(a)). 4+ disruptive → 60h extended recovery.",notDisruptive:"Ej disruptive schedule.",normVerdictOk:"Inom ORO.FTL.205/.235",restUnderMin:"Vila under min.",normSource:"Källa: ORO.FTL.205, .105(1), CS FTL.1.205(c), .220, .235.",noExtension:"ingen förlängning",ifrSrc:"In-flight rest",splitSrc:"Split: bas+50% av",hRest:"h rast",extra:"extra",sekt:"sekt",isCalledLabel:"Utkallad till flygning",notCalledLabel:"Ingen utkallelse (enbart SBY)",sbyFullPeriod:"Hela SBY-perioden",prevDutyLabel:"Föreg. tjänstgöring (h)",prevDutyHint:"Vila måste vara ≥ föreg. duty (ORO.FTL.235).",minRestReq:"Krav: max av",extLabel:"Planerad förlängning (E1, +1h utan in-flight rest)",cdLabel:"Commander's discretion (max +2h)",extSrc:"Förlängning (CS FTL.1.205(b))",cdSuffix:"+ CD max 2h",extNotAllowed:"Förlängning ej tillåten för denna starttid/sektorantal, eller kombinerad med split/in-flight rest.",calledHint:"Av = ingen utkallelse skedde. Då beräknas endast duty-kredit (25% av hela SBY-perioden).",augHint:"Slå på om FDP:n efter utkallelsen flygs med förstärkt besättning och in-flight rest — tröskeln höjs från 6h till 8h (CS FTL.1.225(b)(8)).",sbySplitHint:"Slå på om FDP:n efter utkallelsen är en split duty — tröskeln höjs från 6h till 8h (CS FTL.1.225(b)(8)).",awayHint:"Vila som påbörjas borta från hemmabas: minimikravet är 10h istället för 12h (ORO.FTL.235(b)).",splitHint:"Rast ≥3h på marken förlänger max-FDP med upp till 50% av rasten. Rasten räknas i sin helhet som FDP. Kan ej kombineras med E1 eller in-flight rest (CS FTL.1.220).",extHint:"Planerad i förväg, max +1h, max 2 ggr per 7 dagar. Kräver utökad vila: pre- och postflight +2h, eller postflight +4h. Ej tillåten vid vissa starttider/sektorantal. Kan ej kombineras med split duty eller in-flight rest (CS FTL.1.205(b)).",cdHint:"Endast vid oförutsedda omständigheter som uppstår vid eller efter incheckning — kan aldrig planeras. Max +2h på gällande gräns. Om ökningen överskrids på sista sektorn p.g.a. oförutsedda omständigheter efter start får flygningen fortsätta till planerad destination eller alternativ. Efterföljande vila får aldrig understiga 10h. Befälhavaren ska rapportera användningen (ORO.FTL.205(f)).",viewSimple:"Enkel",viewAdvanced:"Avancerad",latestOff:"Senaste utcheckning",latestOffSub:"utan förlängning",simpleNote:"Max-FDP ur Table 2 (akklimatiserad besättning) baserat på incheckningstid i referenstid/lokaltid. Utan extension, split duty, in-flight rest eller standby-reduktion — växla till Avancerad för dessa."},
+en:{title:"FDP Calculator",ref:"ORO.FTL · CS FTL.1",tabStandby:"Standby",tabNormal:"Normal duty",sbyTypeLabel:"Standby type",sbyOther:"Other standby (home)",sbyAirport:"Airport standby (ASB)",sbyStart:"SBY start",sbyEnd:"SBY end",called:"Called (contacted)",reportIn:"Report on",reportOut:"Report off",sectors:"Sectors",augLabel:"Augmented (threshold → 8h)",splitLabel:"Split duty (threshold → 8h)",sbyBeforeOther:"SBY to report",sbyBeforeASB:"ASB before FDP",reduction:"Reduction",nightCreditSub:"night credit",noNightCredit:"no night credit",asbReduces:">4h reduces",baseFDP:"Base FDP (T2)",redLimit:"Reduced FDP limit",afterReduction:"after reduction",actualFDP:"Actual FDP",ok:"OK",over:"EXCEEDED",awakeTime:"Awake time (OM-A Policy)",asbCombined:"ASB+FDP combined",within:"within",dutyCred:"Duty credit",asbFullDuty:"ASB = full duty",sby25:"25% of SBY to report",sby25full:"25% of full SBY",withinLimits:"Within limits",overLimit:"EXCEEDS limit",sbyVerdictOk:"Within ORO.FTL.225",fdpOverLimit:"FDP exceeds limit",awakeOverMax:"Awake over max (OM-A)",sbyOver16:"SBY over 16h",asbOverMax:"ASB over 12h (OM-A) or combined over 16h",respTooShort:"Less than 60 min call-to-report (OM-A)",breaksLimit:"Limit exceeded",sbySource:"Source: ORO.FTL.225, CS FTL.1.225, Table 2.",tzLabel:"TZ difference (dest.)",tz0:"Same time (Nordics, C. Europe)",tz1:"1h (Baltics, London, Portugal)",tz2:"2h (Canaries, Iceland)",tz3:"3h (Turkey, Greece winter)",tzHint:"Diff from your home base. Ex from CET: Berlin=0h. Riga, London=1h.",rotLabel:"Time since 1st check-in?",rotToday:"Today (first duty)",rot12:"~12h",rot24:"~1 day",rot36:"~1.5 days",rot48:"~2 days",rot60:"~2.5 days",rot72:"~3 days",rot96:"~4 days",rot120:"5+ days",rotHint:"At 0-1h TZ diff, this has no effect.",restBefore:"Rest before (h)",restAfter:"Rest after (h)",awayToggle:"Rest away from base",ifrLabel:"In-flight rest — class",ifrNone:"None",extraCrew:"Extra crew",splitDutyLabel:"Split duty",breakLabel:"Break (h, min 3h)",appliedLimit:"Applied limit",restBeforeLabel:"Rest before",underMin:"UNDER",acclimB:"Acclimatised to ref. time",acclimD:"Acclimatised to new location",acclimX:"Unknown acclimatisation",acclimBadge:"within 2h band",disruptiveTitle:"DISRUPTIVE SCHEDULE · LOCAL NIGHT",earlyStart:"Early start (05–06)",lateFinish:"Late finish (23–02)",nightDuty:"Night duty (02–05)",localNights:"Local nights in rest",disruptiveWarn:"Disruptive — check local nights (CS FTL.1.235(a)). 4+ → 60h extended recovery.",notDisruptive:"Not disruptive.",normVerdictOk:"Within ORO.FTL.205/.235",fdpOverLimit:"FDP exceeds limit",restUnderMin:"Rest below min.",normSource:"Source: ORO.FTL.205, .105(1), CS FTL.1.205(c), .220, .235.",noExtension:"no extension",ifrSrc:"In-flight rest",splitSrc:"Split: base+50% of",hRest:"h break",extra:"extra",sekt:"sect",isCalledLabel:"Called to flight duty",notCalledLabel:"No callout (SBY only)",sbyFullPeriod:"Full SBY period",prevDutyLabel:"Prev. duty length (h)",prevDutyHint:"Rest must be ≥ prev. duty (ORO.FTL.235).",minRestReq:"Req: max of",extLabel:"Planned extension (E1, +1h without in-flight rest)",cdLabel:"Commander's discretion (max +2h)",extSrc:"Extension (CS FTL.1.205(b))",cdSuffix:"+ CD max 2h",extNotAllowed:"Extension not allowed for this start time/sector count, or combined with split/in-flight rest.",calledHint:"Off = no callout occurred. Only duty credit is calculated (25% of the full SBY period).",augHint:"Enable if the FDP after callout is flown with augmented crew and in-flight rest — threshold rises from 6h to 8h (CS FTL.1.225(b)(8)).",sbySplitHint:"Enable if the FDP after callout is a split duty — threshold rises from 6h to 8h (CS FTL.1.225(b)(8)).",awayHint:"Rest commencing away from home base: minimum requirement is 10h instead of 12h (ORO.FTL.235(b)).",splitHint:"Ground break ≥3h extends max FDP by up to 50% of the break. The break counts in full as FDP. Cannot be combined with E1 or in-flight rest (CS FTL.1.220).",extHint:"Planned in advance, max +1h, max twice per 7 days. Requires increased rest: pre- and post-flight +2h, or post-flight +4h. Not allowed at certain start times/sector counts. Cannot be combined with split duty or in-flight rest (CS FTL.1.205(b)).",cdHint:"Only for unforeseen circumstances arising at or after reporting — can never be planned. Max +2h on the applicable limit. If on the final sector the allowed increase is exceeded due to unforeseen circumstances after take-off, the flight may continue to the planned destination or alternate. Subsequent rest never below 10h. The commander must report its use (ORO.FTL.205(f)).",viewSimple:"Simple",viewAdvanced:"Advanced",latestOff:"Latest check-out",latestOffSub:"without extension",simpleNote:"Max FDP from Table 2 (acclimatised crew) based on check-in at reference/local time. Without extension, split duty, in-flight rest or standby reduction — switch to Advanced for those."}};
 
-/* ─── Helpers ─────────────────────────────────────────────────────────────── */
-const toHM = (mins) => {
-  const s = mins < 0 ? "-" : "";
-  const a = Math.abs(Math.round(mins));
-  return `${s}${Math.floor(a / 60)}:${String(a % 60).padStart(2, "0")}`;
-};
-const timeToMins = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
-const minsToTime = (mins) => {
-  const m = ((mins % 1440) + 1440) % 1440;
-  return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
-};
+// ─── Tables ─────────────────────────────────────────────────────────────
+const T2=[{f:360,t:809,v:[780,750,720,690,660,630,600,570,540]},{f:810,t:839,v:[765,735,705,675,645,615,585,555,540]},{f:840,t:869,v:[750,720,690,660,630,600,570,540,540]},{f:870,t:899,v:[735,705,675,645,615,585,555,540,540]},{f:900,t:929,v:[720,690,660,630,600,570,540,540,540]},{f:930,t:959,v:[705,675,645,615,585,555,540,540,540]},{f:960,t:989,v:[690,660,630,600,570,540,540,540,540]},{f:990,t:1019,v:[675,645,615,585,555,540,540,540,540]},{f:1020,t:299,v:[660,630,600,570,540,540,540,540,540]},{f:300,t:314,v:[720,690,660,630,600,570,540,540,540]},{f:315,t:329,v:[735,705,675,645,615,585,555,540,540]},{f:330,t:344,v:[750,720,690,660,630,600,570,540,540]},{f:345,t:359,v:[765,735,705,675,645,615,585,555,540]}];
+const T3=[660,630,600,570,540,540,540];
+const TEXT=[{f:360,t:374,v:[null,null,null,null]},{f:375,t:389,v:[795,765,735,705]},{f:390,t:404,v:[810,780,750,720]},{f:405,t:419,v:[825,795,765,735]},{f:420,t:809,v:[840,810,780,750]},{f:810,t:839,v:[825,795,765,null]},{f:840,t:869,v:[810,780,750,null]},{f:870,t:899,v:[795,765,735,null]},{f:900,t:929,v:[780,750,720,null]},{f:930,t:959,v:[765,null,null,null]},{f:960,t:989,v:[750,null,null,null]},{f:990,t:1019,v:[735,null,null,null]},{f:1020,t:1049,v:[720,null,null,null]},{f:1050,t:1079,v:[705,null,null,null]},{f:1080,t:1109,v:[690,null,null,null]},{f:1110,t:1139,v:[675,null,null,null]},{f:1140,t:359,v:[null,null,null,null]}];
+function lExt(rt,s){if(s>5)return null;const rm=tm(rt);const b=TEXT.find(b=>b.f<=b.t?rm>=b.f&&rm<=b.t:rm>=b.f||rm<=b.t);if(!b)return null;return b.v[s<=2?0:s-2]}
+function lT2(rt,s){const rm=tm(rt);const b=T2.find(b=>{const f=b.f,t=b.t;return f<=t?rm>=f&&rm<=t:rm>=f||rm<=t})||T2[0];const i=Math.min(Math.max(s,1),10)<=2?0:Math.min(s,10)-2;return b.v[Math.min(i,b.v.length-1)]}
+function lT3(s){const i=Math.min(Math.max(s,1),8)<=2?0:Math.min(s,8)-2;return T3[Math.min(i,T3.length-1)]}
 
-/* ─── EXACT Table 2 — ORO.FTL.205(b)(1) ──────────────────────────────────── */
-const T2 = [
-  { f: "06:00", t: "13:29", v: [780,750,720,690,660,630,600,570,540] },
-  { f: "13:30", t: "13:59", v: [765,735,705,675,645,615,585,555,540] },
-  { f: "14:00", t: "14:29", v: [750,720,690,660,630,600,570,540,540] },
-  { f: "14:30", t: "14:59", v: [735,705,675,645,615,585,555,540,540] },
-  { f: "15:00", t: "15:29", v: [720,690,660,630,600,570,540,540,540] },
-  { f: "15:30", t: "15:59", v: [705,675,645,615,585,555,540,540,540] },
-  { f: "16:00", t: "16:29", v: [690,660,630,600,570,540,540,540,540] },
-  { f: "16:30", t: "16:59", v: [675,645,615,585,555,540,540,540,540] },
-  { f: "17:00", t: "04:59", v: [660,630,600,570,540,540,540,540,540] },
-  { f: "05:00", t: "05:14", v: [720,690,660,630,600,570,540,540,540] },
-  { f: "05:15", t: "05:29", v: [735,705,675,645,615,585,555,540,540] },
-  { f: "05:30", t: "05:44", v: [750,720,690,660,630,600,570,540,540] },
-  { f: "05:45", t: "05:59", v: [765,735,705,675,645,615,585,555,540] },
-];
-const T3 = [660,630,600,570,540,540,540];
+// ─── Helpers ────────────────────────────────────────────────────────────
+function tm(t){const p=t.split(':');return(+p[0])*60+(+p[1])}
+function fmt(m){const s=m<0?'-':'';const a=Math.abs(Math.round(m));return s+Math.floor(a/60)+':'+String(a%60).padStart(2,'0')}
+function tfmt(m){m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 
-// EXACT Table — Max FDP with extension (CS FTL.1.205(b), OM-A Table 7.4).
-// null = "Not allowed". Columns: 1-2, 3, 4, 5 sectors.
-const T_EXT = [
-  { f: 360, t: 374, v: [null,null,null,null] },
-  { f: 375, t: 389, v: [795,765,735,705] },
-  { f: 390, t: 404, v: [810,780,750,720] },
-  { f: 405, t: 419, v: [825,795,765,735] },
-  { f: 420, t: 809, v: [840,810,780,750] },
-  { f: 810, t: 839, v: [825,795,765,null] },
-  { f: 840, t: 869, v: [810,780,750,null] },
-  { f: 870, t: 899, v: [795,765,735,null] },
-  { f: 900, t: 929, v: [780,750,720,null] },
-  { f: 930, t: 959, v: [765,null,null,null] },
-  { f: 960, t: 989, v: [750,null,null,null] },
-  { f: 990, t: 1019, v: [735,null,null,null] },
-  { f: 1020, t: 1049, v: [720,null,null,null] },
-  { f: 1050, t: 1079, v: [705,null,null,null] },
-  { f: 1080, t: 1109, v: [690,null,null,null] },
-  { f: 1110, t: 1139, v: [675,null,null,null] },
-  { f: 1140, t: 359, v: [null,null,null,null] },
-];
-function lookupExt(reportTime, sectors) {
-  if (sectors > 5) return null;
-  const rm = timeToMins(reportTime);
-  const band = T_EXT.find(b => b.f <= b.t ? rm >= b.f && rm <= b.t : rm >= b.f || rm <= b.t);
-  if (!band) return null;
-  const idx = sectors <= 2 ? 0 : sectors - 2;
-  return band.v[idx];
-}
+function nightCredit(s0,end){const st=((s0%1440)+1440)%1440;if(!(st>=1380||st<420))return 0;let c=0;for(let m=s0;m<end;m++){const n=((m%1440)+1440)%1440;if(n>=1380||n<420)c++}return c}
 
-function lookupT2(reportTime, sectors) {
-  const rm = timeToMins(reportTime);
-  const band = T2.find(b => {
-    const f = timeToMins(b.f), t = timeToMins(b.t);
-    return f <= t ? rm >= f && rm <= t : rm >= f || rm <= t;
-  }) || T2[0];
-  const idx = Math.min(Math.max(sectors, 1), 10) <= 2 ? 0 : Math.min(sectors, 10) - 2;
-  return band.v[Math.min(idx, band.v.length - 1)];
-}
-function lookupT3(sectors) {
-  const idx = Math.min(Math.max(sectors, 1), 8) <= 2 ? 0 : Math.min(sectors, 8) - 2;
-  return T3[Math.min(idx, T3.length - 1)];
-}
+function acclim(td,hrs,t){const a=Math.abs(td);if(a<2)return{code:'B',label:t.acclimB+' ('+t.acclimBadge+')'};
+const r=a<4?0:a<=6?1:a<=9?2:3;const c=hrs<48?0:hrs<72?1:hrs<96?2:hrs<120?3:4;
+const tbl=[['B','D','D','D','D'],['B','X','D','D','D'],['B','X','X','D','D'],['B','X','X','X','D']];
+const code=tbl[r][c];return{code,label:{B:t.acclimB,D:t.acclimD,X:t.acclimX}[code]}}
 
-/* ─── Table 1 — Acclimatisation (BUGFIX #6: corrected matrix) ─────────────── */
-function acclimStatus(tzDiff, hrsElapsed, L) {
-  const td = Math.abs(tzDiff);
-  if (td < 2) return { code: "B", label: `${L.acclimB} (${L.acclimBadge})` };
-  // Row: <4h → 0, 4-6 → 1, >6-9 → 2, >9-12 → 3
-  const row = td < 4 ? 0 : td <= 6 ? 1 : td <= 9 ? 2 : 3;
-  // Col: <48 → 0, 48-71:59 → 1, 72-95:59 → 2, 96-119:59 → 3, >=120 → 4
-  const col = hrsElapsed < 48 ? 0 : hrsElapsed < 72 ? 1 : hrsElapsed < 96 ? 2 : hrsElapsed < 120 ? 3 : 4;
-  // OFFICIAL Table 1 per ORO.FTL.105(1) (EASA Easy Access Rules Mar 2026):
-  const tbl = [
-    ["B","D","D","D","D"],  // <4h
-    ["B","X","D","D","D"],  // 4-6h
-    ["B","X","X","D","D"],  // >6-9h
-    ["B","X","X","X","D"],  // >9-12h
-  ];
-  const code = tbl[row][col];
-  const labels = { B: L.acclimB, D: L.acclimD, X: L.acclimX };
-  return { code, label: labels[code] };
-}
+const IFR={1:{class3:840,class2:900,class1:960},2:{class3:900,class2:960,class1:1020}};
 
-/* ─── In-flight rest ──────────────────────────────────────────────────────── */
-const IFR = { 1: { class3: 840, class2: 900, class1: 960 }, 2: { class3: 900, class2: 960, class1: 1020 } };
+function disruptive(rt,ot){const r=tm(rt),o=tm(ot);return{early:r>=300&&r<=359,late:o>=1380||o<=119,night:(()=>{let off=o<r?o+1440:o;return r<=299||off>=1560||(off>=120&&r<=299)})()}}
 
-/* ─── Disruptive schedule (Sweden: early type) ────────────────────────────── */
-function classifyDisruptive(reportTime, offTime) {
-  const r = timeToMins(reportTime), o = timeToMins(offTime);
-  const earlyStart = r >= 300 && r <= 359;
-  const lateFinish = o >= 1380 || o <= 119;
-  const nightDuty = (() => {
-    let off = o < r ? o + 1440 : o;
-    if (r <= 299 || off >= 120 + 1440) return true;
-    if (off >= 120 && r <= 299) return true;
-    return false;
-  })();
-  return { earlyStart, lateFinish, nightDuty };
-}
+function localNights(ot,hrs){const offM=tm(ot),re=offM+hrs*60;let n=0,ns=Math.ceil(offM/1440)*1440+1320;if(ns-1440+480>offM&&ns-1440>=offM)ns-=1440;while(ns<re){if(ns>=offM&&ns+480<=re)n++;ns+=1440}return n}
 
-/* ─── Local nights ────────────────────────────────────────────────────────── */
-function localNightsInRest(offTime, restHours) {
-  const offM = timeToMins(offTime);
-  const restMins = restHours * 60;
-  const restEnd = offM + restMins;
-  let nights = 0;
-  let nightStart = Math.ceil(offM / 1440) * 1440 + 22 * 60;
-  if (nightStart - 1440 + 480 > offM && nightStart - 1440 >= offM) nightStart -= 1440;
-  while (nightStart < restEnd) {
-    if (nightStart >= offM && nightStart + 480 <= restEnd) nights++;
-    nightStart += 1440;
-  }
-  return nights;
-}
+// ─── State ──────────────────────────────────────────────────────────────
+let lang='en',mode='standby',nView='simple';
+let S={sbyType:'other',sbyStart:'04:00',sbyEnd:'16:00',isCalled:true,callTime:'10:30',reportTime:'15:00',sectors:3,offTime:'21:00',aug:false,split:false};
+let N={report:'06:00',off:'14:30',sectors:2,tz:0,hrs:0,restFac:'none',extraCrew:0,split:false,breakH:0,prevRest:12,prevDuty:8,away:false,postRest:12,ext:false,cd:false};
 
-/* ─── Night credit — CS FTL.1.225(b)(9) ──────────────────────────────────── */
-function calcNightCredit(sbyStartMins, cutoffMins) {
-  // (b)(9): applies ONLY if standby STARTS between 23:00 and 07:00.
-  // Then, night minutes (23:00–07:00) do not count towards the FDP
-  // reduction until the crew member is contacted (cutoffMins).
-  const startNorm = ((sbyStartMins % 1440) + 1440) % 1440;
-  const startsInNightWindow = startNorm >= 1380 || startNorm < 420;
-  if (!startsInNightWindow) return 0;
-  let credit = 0;
-  for (let m = sbyStartMins; m < cutoffMins; m++) {
-    const mNorm = ((m % 1440) + 1440) % 1440;
-    if (mNorm >= 1380 || mNorm < 420) credit++;
-  }
-  return credit;
-}
+function t(){return L[lang]}
 
-/* ═══════════════════════════════════════════════════════════════════════════ */
-export default function App() {
-  const [lang, setLang] = useState("en");
-  const L = i18n[lang];
-  const [mode, setMode] = useState("standby");
-  const [nView, setNView] = useState("simple");
+// ─── Calc ───────────────────────────────────────────────────────────────
+function calcSby(){
+  const s0=tm(S.sbyStart);let se=tm(S.sbyEnd);if(se<s0)se+=1440;
+  let cm=tm(S.callTime);if(cm<s0)cm+=1440;
+  let rm=tm(S.reportTime);if(rm<s0)rm+=1440;
+  let om=tm(S.offTime);if(om<rm)om+=1440;
+  if(!S.isCalled&&S.sbyType==='other'){
+    const dur=se-s0,dc=Math.round(dur*.25),nc=nightCredit(s0,se),aw=dur-nc;
+    return{type:'other',called:false,sbyBefore:dur,red:0,nc:0,baseFDP:0,redLimit:0,actFDP:0,totalAwake:aw,awLim:1080,fdpOk:true,awOk:aw<=1080,sbyOk:dur<=960,respOk:true,dc,s0,se,cm:s0,rm:s0,om:s0}}
+  if(S.sbyType==='airport'){
+    const dur=rm-s0,base=lT2(S.reportTime,S.sectors),act=om-rm,red=Math.max(0,dur-240),rl=Math.max(0,base-red),comb=om-s0;
+    const asbMaxOk=dur<=720; // OM-A: max ASB 12h
+    return{type:'airport',called:true,sbyBefore:dur,red,nc:0,baseFDP:base,redLimit:rl,actFDP:act,totalAwake:comb,awLim:960,fdpOk:act<=rl,awOk:comb<=960,sbyOk:comb<=960&&asbMaxOk,asbMaxOk,respOk:true,dc:dur,s0,se,cm:rm,rm,om}}
+  const sbyToRep=rm-s0,base=lT2(S.reportTime,S.sectors),act=om-rm;
+  const thresh=(S.aug||S.split)?480:360;let rawRed=Math.max(0,sbyToRep-thresh);
+  const nc=nightCredit(s0,cm);const red=Math.max(0,rawRed-nc);
+  const rl=Math.max(0,base-red);const nightSby=nightCredit(s0,rm);const aw=(om-s0)-nightSby;
+  const respOk=(rm-cm)>=60; // OM-A: min 60 min call->report
+  return{type:'other',called:true,sbyBefore:sbyToRep,red,nc,baseFDP:base,redLimit:rl,actFDP:act,totalAwake:aw,awLim:1080,fdpOk:act<=rl,awOk:aw<=1080,sbyOk:sbyToRep<=960,respOk,dc:Math.round(sbyToRep*.25),s0,se,cm,rm,om}}
 
-  /* ── Standby state ── */
-  const [sbyType, setSbyType] = useState("other");
-  const [sbyStart, setSbyStart] = useState("04:00");
-  const [sbyEnd, setSbyEnd] = useState("16:00");
-  const [isCalled, setIsCalled] = useState(true); // FIX #4: toggle
-  const [callTime, setCallTime] = useState("10:30");
-  const [reportTime, setReportTime] = useState("15:00");
-  const [sectors, setSectors] = useState(3);
-  const [offTime, setOffTime] = useState("21:00");
-  const [augmented, setAugmented] = useState(false);
-  const [splitDuty, setSplitDuty] = useState(false);
+function calcNorm(){
+  const T=t(),rm=tm(N.report);let om=tm(N.off);if(om<rm)om+=1440;const act=om-rm;
+  const acc=acclim(N.tz,N.hrs,T);let base,tbl;
+  if(acc.code==='X'){base=lT3(N.sectors);tbl='Table 3'}else{base=lT2(N.report,N.sectors);tbl=acc.code==='D'?'Table 2 (D)':'Table 2'}
+  const ifrOk=N.restFac!=='none'&&N.extraCrew>0&&N.sectors<=3;let ifrLim=null;
+  if(ifrOk){const r=IFR[Math.min(N.extraCrew,2)];ifrLim=r?r[N.restFac]:null}
+  const spOk=N.split&&N.breakH>=3&&!ifrOk;let spLim=null;if(spOk)spLim=base+Math.floor(N.breakH*60*.5);
+  const extAp=N.ext&&!ifrOk&&!spOk;const extVal=extAp?lExt(N.report,N.sectors):null;
+  let lim=base,src=tbl+', '+T.noExtension;
+  if(ifrOk&&ifrLim){lim=ifrLim;src=T.ifrSrc+': '+N.extraCrew+' '+T.extra+', '+N.restFac}
+  else if(spOk){lim=spLim;src=T.splitSrc+' '+N.breakH+T.hRest}
+  else if(extAp&&extVal!==null){lim=extVal;src=T.extSrc}
+  const extNA=extAp&&extVal===null;
+  if(N.cd){lim=lim+120;src=src+' '+T.cdSuffix}
+  const fdpOk=act<=lim;const bf=N.away?10:12;const minR=Math.max(bf,N.prevDuty);const rOk=N.prevRest>=minR;
+  const dis=disruptive(N.report,N.off);const pn=localNights(N.off,N.postRest);
+  return{rm,om,act,base,lim,src,tbl,fdpOk,acc,rOk,minR,bf,dis,pn,extNA}}
 
-  /* ── Normal state ── */
-  const [nReport, setNReport] = useState("06:00");
-  const [nOff, setNOff] = useState("14:30");
-  const [nSectors, setNSectors] = useState(2);
-  const [nTzDiff, setNTzDiff] = useState(0);
-  const [nHrsElapsed, setNHrsElapsed] = useState(0);
-  const [nRestFacility, setNRestFacility] = useState("none");
-  const [nExtraCrew, setNExtraCrew] = useState(0);
-  const [nSplit, setNSplit] = useState(false);
-  const [nBreakH, setNBreakH] = useState(0);
-  const [nPrevRest, setNPrevRest] = useState(12);
-  const [nPrevDuty, setNPrevDuty] = useState(8); // FIX #7: previous duty length
-  const [nAway, setNAway] = useState(false);
-  const [nPostRest, setNPostRest] = useState(12);
-  const [nExt, setNExt] = useState(false);
-  const [nCD, setNCD] = useState(false);
+// ─── Render ─────────────────────────────────────────────────────────────
+function h(tag,cls,html){return'<div class="'+cls+'">'+html+'</div>'}
+function stat(lbl,val,sub,accent,bad){return'<div class="stat'+(bad?' bad':'')+'"><div class="stat-lbl">'+lbl+'</div><div class="stat-val'+(bad?' bad':accent?' accent':'')+'">'+val+'</div><div class="stat-sub'+(bad?' bad':'')+'">'+sub+'</div></div>'}
+function field(lbl,inner,info){const hid='h'+(_hid++);const iBtn=info?'<span class="info-i" onclick="togHint(\''+hid+'\',this)">i</span>':'';const hBox=info?'<div class="hint-box" id="'+hid+'">'+info+'</div>':'';return'<div><div class="fl" style="display:flex;align-items:center">'+lbl+iBtn+'</div>'+inner+hBox+'</div>'}
+function sel(id,opts,val){return'<select id="'+id+'">'+opts.map(o=>'<option value="'+o[0]+'"'+(String(o[0])===String(val)?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>'}
+function inp(id,type,val,extra){return'<input type="'+type+'" id="'+id+'" value="'+val+'" '+(extra||'')+'>'}
+function tgl(id,on,lbl,hint){const hid='h'+(_hid++);const iBtn=hint?'<span class="info-i" onclick="event.stopPropagation();togHint(\''+hid+'\',this)">i</span>':'';const hBox=hint?'<div class="hint-box" id="'+hid+'">'+hint+'</div>':'';return'<div><div class="tgl" data-tgl="'+id+'"><div class="tgl-box'+(on?' on':'')+'"><div class="tgl-dot"></div></div><span class="tgl-label">'+lbl+'</span>'+iBtn+'</div>'+hBox+'</div>'}
 
-  /* ── Standby calc ── */
-  const sby = useMemo(() => {
-    const s0 = timeToMins(sbyStart);
-    let se = timeToMins(sbyEnd); if (se < s0) se += 1440;
-    let cm = timeToMins(callTime); if (cm < s0) cm += 1440;
-    let rm = timeToMins(reportTime); if (rm < s0) rm += 1440;
-    let om = timeToMins(offTime); if (om < rm) om += 1440;
+function render(){
+  const T=t();let o='';
+  // Header
+  o+='<div class="hdr"><div><div class="ref">'+T.ref+'</div><h1>'+T.title+'</h1></div><button class="lang-btn" id="langBtn">'+(lang==='sv'?'EN':'SV')+'</button></div>';
+  // Tabs
+  o+='<div class="tabs"><button class="tab'+(mode==='normal'?' on':'')+'" data-mode="normal">'+T.tabNormal+'</button><button class="tab'+(mode==='standby'?' on':'')+'" data-mode="standby">'+T.tabStandby+'</button></div>';
 
-    // --- NOT CALLED: just duty credit for full SBY period ---
-    if (!isCalled && sbyType === "other") {
-      const sbyDur = se - s0;
-      const dutyCred = Math.round(sbyDur * 0.25);
-      const nightDuringSby = calcNightCredit(s0, se);
-      const awake = sbyDur - nightDuringSby;
-      return {
-        type: "other", isCalled: false,
-        sbyBefore: sbyDur, reduction: 0, nightCredit: 0,
-        baseFDP: 0, redLimit: 0, actualFDP: 0,
-        totalAwake: awake, awakeLimit: 1080,
-        fdpOk: true, awakeOk: awake <= 1080,
-        sbyOk: sbyDur <= 960,
-        respOk: true,
-        dutyCred, s0, se, cm: s0, rm: s0, om: s0,
-      };
+  if(mode==='standby'){
+    const c=calcSby();
+    // Controls
+    o+='<div class="card">';
+    o+=field(T.sbyTypeLabel,sel('sbyType',[['other',T.sbyOther],['airport',T.sbyAirport]],S.sbyType));
+    o+='<div class="row">'+field(T.sbyStart,inp('sbyStart','time',S.sbyStart))+field(T.sbyEnd,inp('sbyEnd','time',S.sbyEnd))+'</div>';
+    if(S.sbyType==='other') o+=tgl('isCalled',S.isCalled,S.isCalled?T.isCalledLabel:T.notCalledLabel,T.calledHint);
+    if(S.isCalled&&S.sbyType==='other') o+=field(T.called,inp('callTime','time',S.callTime));
+    if(S.isCalled||S.sbyType==='airport'){
+      o+='<div class="row">'+field(T.reportIn,inp('reportTime','time',S.reportTime))+field(T.reportOut,inp('offTime','time',S.offTime))+'</div>';
+      o+=field(T.sectors,sel('sectors',[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8]],S.sectors));
     }
-
-    if (sbyType === "airport") {
-      const asbDur = rm - s0;
-      const baseFDP = lookupT2(reportTime, sectors);
-      const actualFDP = om - rm;
-      const red = Math.max(0, asbDur - 240);
-      const redLimit = Math.max(0, baseFDP - red);
-      const comb = om - s0;
-      return {
-        type: "airport", isCalled: true,
-        sbyBefore: asbDur, reduction: red, nightCredit: 0,
-        baseFDP, redLimit, actualFDP,
-        totalAwake: comb, awakeLimit: 960,
-        fdpOk: actualFDP <= redLimit, awakeOk: comb <= 960,
-        sbyOk: comb <= 960 && asbDur <= 720, // incl. OM-A: max ASB 12h
-        respOk: true,
-        dutyCred: asbDur, s0, se, cm: rm, rm, om,
-      };
+    if(S.isCalled&&S.sbyType==='other'){
+      o+=tgl('aug',S.aug,T.augLabel,T.augHint);
+      o+=tgl('split',S.split,T.splitLabel,T.sbySplitHint);
     }
+    o+='</div>';
+    // Timeline
+    const tlEnd=c.called?c.om:c.se;const span=Math.max(tlEnd-c.s0+60,480);
+    const pc=m=>Math.min(100,Math.max(0,(m-c.s0)/span*100));
+    o+='<div class="card"><div class="disrupt-title">TIMELINE</div><div style="position:relative;height:56px"><div class="tl-bar">';
+    if(!c.called&&S.sbyType==='other'){
+      o+='<div class="tl-seg" style="left:'+pc(c.s0)+'%;width:'+(pc(c.se)-pc(c.s0))+'%;background:#3D5A4C"></div>';
+    }else{
+      o+='<div class="tl-seg" style="left:'+pc(c.s0)+'%;width:'+(pc(c.cm)-pc(c.s0))+'%;background:#3D5A4C"></div>';
+      if(S.sbyType==='other')o+='<div class="tl-seg" style="left:'+pc(c.cm)+'%;width:'+Math.max(0,pc(c.rm)-pc(c.cm))+'%;background:#5A7A68"></div>';
+      o+='<div class="tl-seg" style="left:'+pc(c.rm)+'%;width:'+Math.max(0,pc(c.om)-pc(c.rm))+'%;background:'+(c.fdpOk?'#E8A33D':'#D9624A')+'"></div>';
+    }
+    o+='</div>';
+    // Markers
+    const mk=(p,l,ti,ac)=>'<div class="tl-mk" style="left:'+p+'%"><div class="tl-mk-line" style="background:'+(ac?'#E8A33D':'#5C7A6A')+'"></div><div class="tl-mk-time" style="color:'+(ac?'#E8A33D':'#9DB5A8')+'">'+ti+'</div><div class="tl-mk-label">'+l+'</div></div>';
+    o+=mk(pc(c.s0),'SBY',tfmt(c.s0));
+    if(!c.called&&S.sbyType==='other'){o+=mk(pc(c.se),T.sbyEnd,tfmt(c.se))}
+    else{if(S.sbyType==='other')o+=mk(pc(c.cm),T.called,tfmt(c.cm),true);o+=mk(pc(c.rm),'Report',tfmt(c.rm));o+=mk(pc(c.om),'Off',tfmt(c.om))}
+    o+='</div></div>';
+    // Results
+    o+='<div class="grid">';
+    o+=stat(c.type==='airport'?T.sbyBeforeASB:(c.called?T.sbyBeforeOther:T.sbyFullPeriod),fmt(c.sbyBefore),c.sbyOk?T.withinLimits:T.overLimit,false,!c.sbyOk);
+    if(c.called){
+      o+=stat(T.reduction,fmt(c.red),c.nc>0?fmt(c.nc)+' '+T.nightCreditSub:c.type==='airport'?T.asbReduces:T.noNightCredit);
+      o+=stat(T.baseFDP,fmt(c.baseFDP),S.sectors+' '+T.sekt+', '+S.reportTime);
+      o+=stat(T.redLimit,fmt(c.redLimit),T.afterReduction,true);
+      o+=stat(T.actualFDP,fmt(c.actFDP),c.fdpOk?T.ok:T.over,false,!c.fdpOk);
+      o+=stat(c.type==='airport'?T.asbCombined:T.awakeTime,fmt(c.totalAwake),c.awOk?T.within+' '+fmt(c.awLim):T.over+' '+fmt(c.awLim),false,!c.awOk);
+    }
+    o+=stat(T.dutyCred,fmt(c.dc),c.type==='airport'?T.asbFullDuty:(c.called?T.sby25:T.sby25full));
+    o+='</div>';
+    // Verdict
+    const allOk=c.called?(c.fdpOk&&c.awOk&&c.sbyOk&&c.respOk):c.sbyOk;
+    const fails=[c.called&&!c.fdpOk&&T.fdpOverLimit,c.called&&!c.awOk&&T.awakeOverMax,!c.sbyOk&&(c.type==='airport'?T.asbOverMax:T.sbyOver16),c.called&&!c.respOk&&T.respTooShort].filter(Boolean).join('. ');
+    o+='<div class="verdict '+(allOk?'ok':'fail')+'"><div class="verdict-dot"></div><div><div class="verdict-title">'+(allOk?T.sbyVerdictOk:T.breaksLimit)+'</div>'+(!allOk?'<div class="verdict-sub">'+fails+'</div>':'')+'</div></div>';
+    o+='<div class="note">'+T.sbySource+'</div>';
 
-    // --- OTHER STANDBY, CALLED ---
-    // FIX #1: SBY duration for FDP reduction = SBY start → Report Time
-    const sbyToReport = rm - s0;
-    const baseFDP = lookupT2(reportTime, sectors);
-    const actualFDP = om - rm;
-
-    const thresh = (augmented || splitDuty) ? 480 : 360;
-    let rawReduction = Math.max(0, sbyToReport - thresh);
-
-    // FIX #3: night credit minute-by-minute, stops at call time
-    const nc = calcNightCredit(s0, cm);
-    const reduction = Math.max(0, rawReduction - nc);
-
-    const redLimit = Math.max(0, baseFDP - reduction);
-
-    // Awake time: SBY start → off duty, BUT exclude night minutes (23:00–07:00)
-    // that fall DURING the standby portion (s0 → rm) since crew is sleeping.
-    // Night minutes during FDP (rm → om) count as awake (you're flying).
-    const nightMinsDuringSby = calcNightCredit(s0, rm); // reuse: counts 23-07 mins in [s0, rm)
-    const totalAwake = (om - s0) - nightMinsDuringSby;
-
-    // FIX #2: duty credit = 25% of SBY start → Report time (when called)
-    const dutyCred = Math.round(sbyToReport * 0.25);
-
-    return {
-      type: "other", isCalled: true,
-      sbyBefore: sbyToReport, reduction, nightCredit: nc,
-      baseFDP, redLimit, actualFDP,
-      totalAwake, awakeLimit: 1080,
-      fdpOk: actualFDP <= redLimit,
-      awakeOk: totalAwake <= 1080,
-      sbyOk: sbyToReport <= 960,
-      respOk: (rm - cm) >= 60, // OM-A: min 60 min call-to-report
-      dutyCred, s0, se, cm, rm, om,
-    };
-  }, [sbyType, sbyStart, sbyEnd, isCalled, callTime, reportTime, sectors, offTime, augmented, splitDuty]);
-
-  /* ── Normal calc ── */
-  const norm = useMemo(() => {
-    const rm = timeToMins(nReport);
-    let om = timeToMins(nOff); if (om < rm) om += 1440;
-    const actualFDP = om - rm;
-    const acc = acclimStatus(nTzDiff, nHrsElapsed, L);
-    let baseFDP, tableUsed;
-    if (acc.code === "X") { baseFDP = lookupT3(nSectors); tableUsed = "Table 3"; }
-    else { baseFDP = lookupT2(nReport, nSectors); tableUsed = acc.code === "D" ? "Table 2 (D)" : "Table 2"; }
-    const ifrOk = nRestFacility !== "none" && nExtraCrew > 0 && nSectors <= 3;
-    let ifrLimit = null;
-    if (ifrOk) { const row = IFR[Math.min(nExtraCrew, 2)]; ifrLimit = row?.[nRestFacility] ?? null; }
-    const splitOk = nSplit && nBreakH >= 3 && !ifrOk;
-    let splitLimit = null;
-    if (splitOk) splitLimit = baseFDP + Math.floor(nBreakH * 60 * 0.5);
-    const extApplicable = nExt && !ifrOk && !splitOk;
-    const extVal = extApplicable ? lookupExt(nReport, nSectors) : null;
-    let limit = baseFDP, src = `${tableUsed}, ${L.noExtension}`;
-    if (ifrOk && ifrLimit) { limit = ifrLimit; src = `${L.ifrSrc}: ${nExtraCrew} ${L.extra}, ${nRestFacility}`; }
-    else if (splitOk) { limit = splitLimit; src = `${L.splitSrc} ${nBreakH}${L.hRest}`; }
-    else if (extApplicable && extVal !== null) { limit = extVal; src = L.extSrc; }
-    const extNotAllowed = extApplicable && extVal === null;
-    if (nCD) { limit = limit + 120; src = src + " " + L.cdSuffix; }
-    const fdpOk = actualFDP <= limit;
-
-    // FIX #7: min rest = max(base floor, previous duty length)
-    const baseFloor = nAway ? 10 : 12;
-    const minRest = Math.max(baseFloor, nPrevDuty);
-    const restOk = nPrevRest >= minRest;
-
-    const disruptive = classifyDisruptive(nReport, nOff);
-    const postNights = localNightsInRest(nOff, nPostRest);
-    return { rm, om, actualFDP, baseFDP, limit, src, tableUsed, fdpOk, acc, restOk, minRest, baseFloor, disruptive, postNights, extNotAllowed };
-  }, [nReport, nOff, nSectors, nTzDiff, nHrsElapsed, nRestFacility, nExtraCrew, nSplit, nBreakH, nPrevRest, nPrevDuty, nAway, nPostRest, nExt, nCD, L]);
-
-  const sbyAllOk = sby.fdpOk && sby.awakeOk && sby.sbyOk && sby.respOk;
-  const normAllOk = norm.fdpOk && norm.restOk;
-
-  // Timeline geometry — adapt span depending on whether called or not
-  const tlEnd = sby.isCalled ? sby.om : sby.se;
-  const span = Math.max((tlEnd - sby.s0) + 60, 8 * 60);
-  const t0 = sby.s0;
-  const pct = (m) => Math.min(100, Math.max(0, ((m - t0) / span) * 100));
-
-  /* ═══ RENDER ═══════════════════════════════════════════════════════════ */
-  return (
-    <div style={{ fontFamily: "system-ui, -apple-system, sans-serif", background: "#0E1B17", color: "#E9E4D6", minHeight: "100vh", padding: "env(safe-area-inset-top, 12px) 14px calc(env(safe-area-inset-bottom, 12px) + 40px)", WebkitTextSizeAdjust: "100%" }}>
-      <style>{`
-        * { box-sizing: border-box; }
-        input[type="time"], input[type="number"] { background: #1C2F26; border: 1px solid #2C463C; color: #E9E4D6; border-radius: 8px; padding: 10px 12px; font-family: ui-monospace, monospace; font-size: 16px; width: 100%; min-height: 44px; }
-        select { background: #1C2F26; border: 1px solid #2C463C; color: #E9E4D6; border-radius: 8px; padding: 10px 12px; font-size: 15px; width: 100%; min-height: 44px; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237FA98C' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
-        .tgl { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; min-height: 44px; }
-        .tgl-box { width: 44px; height: 26px; border-radius: 13px; background: #2C463C; position: relative; transition: background 0.2s; flex-shrink: 0; }
-        .tgl-box.on { background: #E8A33D; }
-        .tgl-dot { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #0E1B17; transition: left 0.2s; }
-        .tgl-box.on .tgl-dot { left: 21px; }
-      `}</style>
-
-      <div style={{ maxWidth: 480, margin: "0 auto" }}>
-        {/* Header + lang toggle */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, paddingTop: 8 }}>
-          <div>
-            <div style={{ fontFamily: "ui-monospace, monospace", fontSize: 10, letterSpacing: "0.12em", color: "#5C7A6A", textTransform: "uppercase", marginBottom: 4 }}>{L.ref}</div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: "#F4EFE3" }}>{L.title}</h1>
-          </div>
-          <button onClick={() => setLang(lang === "sv" ? "en" : "sv")} style={{ background: "#1C2F26", border: "1px solid #2C463C", borderRadius: 8, padding: "6px 12px", color: "#E8A33D", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "ui-monospace, monospace", marginTop: 4, minHeight: 36 }}>
-            {lang === "sv" ? "EN" : "SV"}
-          </button>
-        </div>
-
-        {/* Mode tabs */}
-        <div style={{ display: "flex", gap: 3, marginBottom: 16, background: "#16261F", border: "1px solid #2C463C", borderRadius: 10, padding: 3 }}>
-          {["normal", "standby"].map(m => (
-            <button key={m} onClick={() => setMode(m)} style={{ flex: 1, background: mode === m ? "#E8A33D" : "transparent", color: mode === m ? "#1A1208" : "#9DB5A8", border: "none", borderRadius: 8, padding: "10px 8px", fontSize: 14, fontWeight: 600, cursor: "pointer", textAlign: "center" }}>
-              {m === "standby" ? L.tabStandby : L.tabNormal}
-            </button>
-          ))}
-        </div>
-
-        {mode === "standby" ? (<>
-          <Card>
-            <F label={L.sbyTypeLabel}>
-              <select value={sbyType} onChange={e => setSbyType(e.target.value)}>
-                <option value="other">{L.sbyOther}</option>
-                <option value="airport">{L.sbyAirport}</option>
-              </select>
-            </F>
-            <Row><F label={L.sbyStart}><input type="time" value={sbyStart} onChange={e => setSbyStart(e.target.value)} /></F><F label={L.sbyEnd}><input type="time" value={sbyEnd} onChange={e => setSbyEnd(e.target.value)} /></F></Row>
-            {/* FIX #4: isCalled toggle (only for "other" standby) */}
-            {sbyType === "other" && <Tgl label={isCalled ? L.isCalledLabel : L.notCalledLabel} on={isCalled} set={setIsCalled} hint={L.calledHint} />}
-            {/* Show flight-related fields only when called */}
-            {isCalled && sbyType === "other" && <F label={L.called}><input type="time" value={callTime} onChange={e => setCallTime(e.target.value)} /></F>}
-            {(isCalled || sbyType === "airport") && <>
-              <Row><F label={L.reportIn}><input type="time" value={reportTime} onChange={e => setReportTime(e.target.value)} /></F><F label={L.reportOut}><input type="time" value={offTime} onChange={e => setOffTime(e.target.value)} /></F></Row>
-              <F label={L.sectors}><select value={sectors} onChange={e => setSectors(+e.target.value)}>{[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n}</option>)}</select></F>
-            </>}
-            {isCalled && sbyType === "other" && <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
-              <Tgl label={L.augLabel} on={augmented} set={setAugmented} hint={L.augHint} />
-              <Tgl label={L.splitLabel} on={splitDuty} set={setSplitDuty} hint={L.sbySplitHint} />
-            </div>}
-          </Card>
-
-          {/* Timeline */}
-          <Card>
-            <div style={{ fontSize: 10, color: "#5C7A6A", fontFamily: "ui-monospace, monospace", marginBottom: 8, letterSpacing: "0.08em" }}>TIMELINE</div>
-            <div style={{ position: "relative", height: 56 }}>
-              <div style={{ position: "absolute", top: 22, left: 0, right: 0, height: 10, background: "#0E1B17", borderRadius: 5, overflow: "hidden" }}>
-                {/* SBY bar */}
-                {!isCalled && sbyType === "other" ? (
-                  /* Not called: show full SBY period only */
-                  <div style={{ position: "absolute", left: `${pct(sby.s0)}%`, width: `${pct(sby.se) - pct(sby.s0)}%`, top: 0, bottom: 0, background: "#3D5A4C" }} />
-                ) : (<>
-                  {/* Called: SBY pre-call, SBY post-call, FDP */}
-                  <div style={{ position: "absolute", left: `${pct(sby.s0)}%`, width: `${pct(sby.cm) - pct(sby.s0)}%`, top: 0, bottom: 0, background: "#3D5A4C" }} />
-                  {sbyType === "other" && <div style={{ position: "absolute", left: `${pct(sby.cm)}%`, width: `${Math.max(0, pct(sby.rm) - pct(sby.cm))}%`, top: 0, bottom: 0, background: "#5A7A68" }} />}
-                  <div style={{ position: "absolute", left: `${pct(sby.rm)}%`, width: `${Math.max(0, pct(sby.om) - pct(sby.rm))}%`, top: 0, bottom: 0, background: sby.fdpOk ? "#E8A33D" : "#D9624A" }} />
-                </>)}
-              </div>
-              {/* Markers */}
-              <Mk p={pct(sby.s0)} l="SBY" t={minsToTime(sby.s0)} />
-              {!isCalled && sbyType === "other" ? (
-                <Mk p={pct(sby.se)} l={L.sbyEnd} t={minsToTime(sby.se)} />
-              ) : (<>
-                {sbyType === "other" && <Mk p={pct(sby.cm)} l={L.called} t={minsToTime(sby.cm)} accent />}
-                <Mk p={pct(sby.rm)} l="Report" t={minsToTime(sby.rm)} />
-                <Mk p={pct(sby.om)} l="Off" t={minsToTime(sby.om)} />
-              </>)}
-            </div>
-          </Card>
-
-          {/* Results */}
-          <Grid>
-            <S label={sby.type === "airport" ? L.sbyBeforeASB : (isCalled ? L.sbyBeforeOther : L.sbyFullPeriod)} val={toHM(sby.sbyBefore)} sub={sby.sbyOk ? L.withinLimits : L.overLimit} bad={!sby.sbyOk} />
-            {isCalled && <S label={L.reduction} val={toHM(sby.reduction)} sub={sby.nightCredit > 0 ? `${toHM(sby.nightCredit)} ${L.nightCreditSub}` : sby.type === "airport" ? L.asbReduces : L.noNightCredit} />}
-            {isCalled && <S label={L.baseFDP} val={toHM(sby.baseFDP)} sub={`${sectors} ${L.sekt}, ${reportTime}`} />}
-            {isCalled && <S label={L.redLimit} val={toHM(sby.redLimit)} sub={L.afterReduction} accent />}
-            {isCalled && <S label={L.actualFDP} val={toHM(sby.actualFDP)} sub={sby.fdpOk ? L.ok : L.over} bad={!sby.fdpOk} />}
-            {isCalled && <S label={sby.type === "airport" ? L.asbCombined : L.awakeTime} val={toHM(sby.totalAwake)} sub={sby.awakeOk ? `${L.within} ${toHM(sby.awakeLimit)}` : `${L.over} ${toHM(sby.awakeLimit)}`} bad={!sby.awakeOk} />}
-            <S label={L.dutyCred} val={toHM(sby.dutyCred)} sub={sby.type === "airport" ? L.asbFullDuty : (isCalled ? L.sby25 : L.sby25full)} />
-          </Grid>
-
-          <Verdict ok={isCalled ? sbyAllOk : sby.sbyOk} okText={L.sbyVerdictOk} failText={[isCalled && !sby.fdpOk && L.fdpOverLimit, isCalled && !sby.awakeOk && L.awakeOverMax, !sby.sbyOk && (sby.type === "airport" ? L.asbOverMax : L.sbyOver16), isCalled && !sby.respOk && L.respTooShort].filter(Boolean).join(". ")} failTitle={L.breaksLimit} />
-          <Note>{L.sbySource}</Note>
-        </>) : (<>
-          <div style={{ display: "flex", gap: 3, marginBottom: 14, background: "#16261F", border: "1px solid #2C463C", borderRadius: 10, padding: 3 }}>
-            {["simple", "advanced"].map(v => (
-              <button key={v} onClick={() => setNView(v)} style={{ flex: 1, background: nView === v ? "#3D5A4C" : "transparent", color: nView === v ? "#E9E4D6" : "#7FA98C", border: "none", borderRadius: 8, padding: "8px 8px", fontSize: 13, fontWeight: 600, cursor: "pointer", textAlign: "center" }}>
-                {v === "simple" ? L.viewSimple : L.viewAdvanced}
-              </button>
-            ))}
-          </div>
-          {nView === "simple" ? (() => {
-            const srm = timeToMins(nReport);
-            const sbase = lookupT2(nReport, nSectors);
-            const soff = srm + sbase;
-            return (<>
-              <Card>
-                <Row>
-                  <F label={L.reportIn}><input type="time" value={nReport} onChange={e => setNReport(e.target.value)} /></F>
-                  <F label={L.sectors}><select value={nSectors} onChange={e => setNSectors(+e.target.value)}>{[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n}</option>)}</select></F>
-                </Row>
-              </Card>
-              <Grid>
-                <S label={L.baseFDP} val={toHM(sbase)} sub={`${nSectors} ${L.sekt}, ${nReport}`} />
-                <S label={L.latestOff} val={minsToTime(soff)} sub={L.latestOffSub} accent />
-              </Grid>
-              <Note>{L.simpleNote}</Note>
-            </>);
-          })() : (<>
-          <Card>
-            <Row><F label={L.reportIn}><input type="time" value={nReport} onChange={e => setNReport(e.target.value)} /></F><F label={L.reportOut}><input type="time" value={nOff} onChange={e => setNOff(e.target.value)} /></F></Row>
-            <Row>
-              <F label={L.sectors}><select value={nSectors} onChange={e => setNSectors(+e.target.value)}>{[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n}</option>)}</select></F>
-              <F label={L.tzLabel} info={L.tzHint}>
-                <select value={nTzDiff} onChange={e => setNTzDiff(+e.target.value)}>
-                  <option value={0}>{L.tz0}</option>
-                  <option value={1}>{L.tz1}</option>
-                  <option value={2}>{L.tz2}</option>
-                  <option value={3}>{L.tz3}</option>
-                </select>
-              </F>
-            </Row>
-            <F label={L.rotLabel} info={L.rotHint}>
-              <select value={nHrsElapsed} onChange={e => setNHrsElapsed(+e.target.value)}>
-                <option value={0}>{L.rotToday}</option>
-                <option value={12}>{L.rot12}</option>
-                <option value={24}>{L.rot24}</option>
-                <option value={36}>{L.rot36}</option>
-                <option value={48}>{L.rot48}</option>
-                <option value={60}>{L.rot60}</option>
-                <option value={72}>{L.rot72}</option>
-                <option value={96}>{L.rot96}</option>
-                <option value={120}>{L.rot120}</option>
-              </select>
-            </F>
-            {/* FIX #7: Previous duty length + rest before */}
-            <Row>
-              <F label={L.prevDutyLabel} info={L.prevDutyHint}>
-                <input type="number" min={0} max={24} step={0.5} value={nPrevDuty} onChange={e => setNPrevDuty(+e.target.value)} />
-              </F>
-              <F label={L.restBefore}>
-                <input type="number" min={0} max={48} step={0.5} value={nPrevRest} onChange={e => setNPrevRest(+e.target.value)} />
-              </F>
-            </Row>
-            <F label={L.restAfter}><input type="number" min={0} max={48} step={0.5} value={nPostRest} onChange={e => setNPostRest(+e.target.value)} /></F>
-            <Tgl label={L.awayToggle} on={nAway} set={setNAway} hint={L.awayHint} />
-            <div style={{ height: 1, background: "#2C463C", margin: "12px 0" }} />
-            <F label={L.ifrLabel}><select value={nRestFacility} onChange={e => setNRestFacility(e.target.value)}><option value="none">{L.ifrNone}</option><option value="class3">Class 3</option><option value="class2">Class 2</option><option value="class1">Class 1</option></select></F>
-            <F label={L.extraCrew}><select value={nExtraCrew} onChange={e => setNExtraCrew(+e.target.value)}><option value={0}>0</option><option value={1}>1</option><option value={2}>2</option></select></F>
-            <Tgl label={L.splitDutyLabel} on={nSplit} set={setNSplit} hint={L.splitHint} />
-            {nSplit && <F label={L.breakLabel}><input type="number" min={0} max={12} step={0.5} value={nBreakH} onChange={e => setNBreakH(+e.target.value)} /></F>}
-            <Tgl label={L.extLabel} on={nExt} set={setNExt} hint={L.extHint} />
-            {norm.extNotAllowed && <div style={{ fontSize: 12, color: "#D9624A" }}>{L.extNotAllowed}</div>}
-            <Tgl label={L.cdLabel} on={nCD} set={setNCD} hint={L.cdHint} />
-          </Card>
-          {/* Acclimatisation */}
-          <div style={{ background: "rgba(127,169,140,0.08)", border: "1px solid #2C463C", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 13, color: "#9DB5A8" }}>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <span style={{ fontFamily: "ui-monospace, monospace", color: norm.acc.code === "X" ? "#D9624A" : "#E8A33D", fontWeight: 700, fontSize: 16 }}>{norm.acc.code}</span>
-              <span>{norm.acc.label}</span>
-            </div>
-            <div style={{ fontSize: 11, color: "#5C7A6A", marginTop: 4 }}>{norm.tableUsed}</div>
-          </div>
-          {/* Disruptive schedule */}
-          <div style={{ background: "rgba(232,163,61,0.08)", border: "1px solid #2C463C", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: "#C9D9CE" }}>
-            <div style={{ fontFamily: "ui-monospace, monospace", fontSize: 10, color: "#5C7A6A", letterSpacing: "0.08em", marginBottom: 6 }}>{L.disruptiveTitle}</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px" }}>
-              <Tag on={norm.disruptive.earlyStart} label={L.earlyStart} />
-              <Tag on={norm.disruptive.lateFinish} label={L.lateFinish} />
-              <Tag on={norm.disruptive.nightDuty} label={L.nightDuty} />
-            </div>
-            <div style={{ marginTop: 8, fontSize: 13 }}>
-              {L.localNights} ({nPostRest}h): <b style={{ color: "#E8A33D" }}>{norm.postNights}</b>
-            </div>
-            <div style={{ fontSize: 11, color: "#7FA98C", marginTop: 4 }}>
-              {norm.disruptive.earlyStart || norm.disruptive.lateFinish || norm.disruptive.nightDuty ? L.disruptiveWarn : L.notDisruptive}
-            </div>
-          </div>
-          <Grid>
-            <S label={L.actualFDP} val={toHM(norm.actualFDP)} sub={norm.fdpOk ? L.ok : L.over} bad={!norm.fdpOk} />
-            <S label={L.baseFDP} val={toHM(norm.baseFDP)} sub={`${nSectors} ${L.sekt}, ${nReport}`} />
-            <S label={L.appliedLimit} val={toHM(norm.limit)} sub={norm.src} accent />
-            <S label={L.restBeforeLabel} val={`${nPrevRest}h`} sub={norm.restOk ? `${L.ok} (${L.minRestReq} ${norm.baseFloor}h / ${nPrevDuty}h)` : `${L.underMin} ${norm.minRest}h`} bad={!norm.restOk} />
-          </Grid>
-          <Verdict ok={normAllOk} okText={L.normVerdictOk} failText={[!norm.fdpOk && L.fdpOverLimit, !norm.restOk && L.restUnderMin].filter(Boolean).join(". ")} failTitle={L.breaksLimit} />
-          <Note>{L.normSource}</Note>
-          </>)}
-        </>)}
-      </div>
-    </div>
-  );
+  }else{
+    const c=calcNorm();
+    o+='<div class="tabs" style="margin-bottom:12px"><button class="tab" style="'+(nView==='simple'?'background:#3D5A4C;color:#E9E4D6':'')+'" data-nview="simple">'+T.viewSimple+'</button><button class="tab" style="'+(nView==='advanced'?'background:#3D5A4C;color:#E9E4D6':'')+'" data-nview="advanced">'+T.viewAdvanced+'</button></div>';
+    if(nView==='simple'){
+      const sbase=lT2(N.report,N.sectors);const soff=tm(N.report)+sbase;
+      o+='<div class="card">';
+      o+='<div class="row">'+field(T.reportIn,inp('nReport','time',N.report))+field(T.sectors,sel('nSectors',[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8]],N.sectors))+'</div>';
+      o+='</div>';
+      o+='<div class="grid">';
+      o+=stat(T.baseFDP,fmt(sbase),N.sectors+' '+T.sekt+', '+N.report);
+      o+=stat(T.latestOff,tfmt(soff),T.latestOffSub,true);
+      o+='</div>';
+      o+='<div class="note">'+T.simpleNote+'</div>';
+    }else{
+    o+='<div class="card">';
+    o+='<div class="row">'+field(T.reportIn,inp('nReport','time',N.report))+field(T.reportOut,inp('nOff','time',N.off))+'</div>';
+    o+='<div class="row">'+field(T.sectors,sel('nSectors',[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8]],N.sectors));
+    o+=field(T.tzLabel,sel('nTz',[[0,T.tz0],[1,T.tz1],[2,T.tz2],[3,T.tz3]],N.tz),T.tzHint)+'</div>';
+    o+=field(T.rotLabel,sel('nHrs',[[0,T.rotToday],[12,T.rot12],[24,T.rot24],[36,T.rot36],[48,T.rot48],[60,T.rot60],[72,T.rot72],[96,T.rot96],[120,T.rot120]],N.hrs),T.rotHint);
+    o+='<div class="row">'+field(T.prevDutyLabel,inp('nPrevDuty','number',N.prevDuty,'min="0" max="24" step="0.5"'),T.prevDutyHint)+field(T.restBefore,inp('nPrevRest','number',N.prevRest,'min="0" max="48" step="0.5"'))+'</div>';
+    o+=field(T.restAfter,inp('nPostRest','number',N.postRest,'min="0" max="48" step="0.5"'));
+    o+=tgl('nAway',N.away,T.awayToggle,T.awayHint);
+    o+='<div class="sep"></div>';
+    o+=field(T.ifrLabel,sel('nRestFac',[['none',T.ifrNone],['class3','Class 3'],['class2','Class 2'],['class1','Class 1']],N.restFac));
+    o+=field(T.extraCrew,sel('nExtraCrew',[[0,'0'],[1,'1'],[2,'2']],N.extraCrew));
+    o+=tgl('nSplit',N.split,T.splitDutyLabel,T.splitHint);
+    if(N.split)o+=field(T.breakLabel,inp('nBreakH','number',N.breakH,'min="0" max="12" step="0.5"'));
+    o+=tgl('nExt',N.ext,T.extLabel,T.extHint);
+    if(c.extNA)o+='<div style="font-size:12px;color:#D9624A">'+T.extNotAllowed+'</div>';
+    o+=tgl('nCD',N.cd,T.cdLabel,T.cdHint);
+    o+='</div>';
+    // Acclimatisation
+    o+='<div class="badge"><span class="badge-code" style="color:'+(c.acc.code==='X'?'#D9624A':'#E8A33D')+'">'+c.acc.code+'</span>'+c.acc.label+'<div class="badge-sub">'+c.tbl+'</div></div>';
+    // Disruptive
+    const isD=c.dis.early||c.dis.late||c.dis.night;
+    o+='<div class="disrupt"><div class="disrupt-title">'+T.disruptiveTitle+'</div>';
+    o+='<span class="tag '+(c.dis.early?'on':'off')+'">'+T.earlyStart+'</span>';
+    o+='<span class="tag '+(c.dis.late?'on':'off')+'">'+T.lateFinish+'</span>';
+    o+='<span class="tag '+(c.dis.night?'on':'off')+'">'+T.nightDuty+'</span>';
+    o+='<div style="margin-top:8px;font-size:13px">'+T.localNights+' ('+N.postRest+'h): <b style="color:#E8A33D">'+c.pn+'</b></div>';
+    o+='<div class="disrupt-info">'+(isD?T.disruptiveWarn:T.notDisruptive)+'</div></div>';
+    // Results
+    o+='<div class="grid">';
+    o+=stat(T.actualFDP,fmt(c.act),c.fdpOk?T.ok:T.over,false,!c.fdpOk);
+    o+=stat(T.baseFDP,fmt(c.base),N.sectors+' '+T.sekt+', '+N.report);
+    o+=stat(T.appliedLimit,fmt(c.lim),c.src,true);
+    o+=stat(T.restBeforeLabel,N.prevRest+'h',c.rOk?T.ok+' ('+T.minRestReq+' '+c.bf+'h / '+N.prevDuty+'h)':T.underMin+' '+c.minR+'h',false,!c.rOk);
+    o+='</div>';
+    const allOk=c.fdpOk&&c.rOk;
+    const fails=[!c.fdpOk&&T.fdpOverLimit,!c.rOk&&T.restUnderMin].filter(Boolean).join('. ');
+    o+='<div class="verdict '+(allOk?'ok':'fail')+'"><div class="verdict-dot"></div><div><div class="verdict-title">'+(allOk?T.normVerdictOk:T.breaksLimit)+'</div>'+(!allOk?'<div class="verdict-sub">'+fails+'</div>':'')+'</div></div>';
+    o+='<div class="note">'+T.normSource+'</div>';
+    }
+  }
+  document.getElementById('app').innerHTML=o;
+  bind();
 }
 
-/* ─── UI Components ───────────────────────────────────────────────────────── */
-function Card({ children }) { return <div style={{ background: "#16261F", border: "1px solid #2C463C", borderRadius: 12, padding: 16, marginBottom: 14, display: "flex", flexDirection: "column", gap: 14 }}>{children}</div>; }
-function Row({ children }) { return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{children}</div>; }
-function F({ label, children, info }) {
-  const [show, setShow] = useState(false);
-  return <div>
-    <div style={{ fontSize: 11, color: "#7FA98C", marginBottom: 5, display: "flex", alignItems: "center" }}>{label}{info && <InfoI open={show} onClick={() => setShow(!show)} />}</div>
-    {children}
-    {info && show && <HintBox>{info}</HintBox>}
-  </div>;
+// ─── Event binding ──────────────────────────────────────────────────────
+function bind(){
+  const $=id=>document.getElementById(id);
+  $('langBtn')?.addEventListener('click',()=>{lang=lang==='sv'?'en':'sv';render()});
+  document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.mode;render()}));
+  document.querySelectorAll('[data-nview]').forEach(b=>b.addEventListener('click',()=>{nView=b.dataset.nview;render()}));
+  // Standby
+  const sMap={sbyType:[S,'sbyType'],sbyStart:[S,'sbyStart'],sbyEnd:[S,'sbyEnd'],callTime:[S,'callTime'],reportTime:[S,'reportTime'],offTime:[S,'offTime'],sectors:[S,'sectors','int']};
+  Object.entries(sMap).forEach(([id,[obj,key,type]])=>{const el=$(id);if(el)el.addEventListener('change',()=>{obj[key]=type==='int'?+el.value:el.value;render()})});
+  // Normal
+  const nMap={nReport:[N,'report'],nOff:[N,'off'],nSectors:[N,'sectors','int'],nTz:[N,'tz','int'],nHrs:[N,'hrs','int'],nRestFac:[N,'restFac'],nExtraCrew:[N,'extraCrew','int'],nBreakH:[N,'breakH','float'],nPrevRest:[N,'prevRest','float'],nPrevDuty:[N,'prevDuty','float'],nPostRest:[N,'postRest','float']};
+  Object.entries(nMap).forEach(([id,[obj,key,type]])=>{const el=$(id);if(el)el.addEventListener('change',()=>{obj[key]=type==='int'?+el.value:type==='float'?+el.value:el.value;render()})});
+  // Toggles
+  document.querySelectorAll('[data-tgl]').forEach(el=>{el.addEventListener('click',()=>{
+    const k=el.dataset.tgl;
+    if(k==='isCalled')S.isCalled=!S.isCalled;
+    else if(k==='aug')S.aug=!S.aug;
+    else if(k==='split')S.split=!S.split;
+    else if(k==='nAway')N.away=!N.away;
+    else if(k==='nSplit')N.split=!N.split;
+    else if(k==='nExt')N.ext=!N.ext;
+    else if(k==='nCD')N.cd=!N.cd;
+    render()})});
 }
-function InfoI({ onClick, open }) {
-  return <span onClick={e => { e.stopPropagation(); onClick(); }} style={{ display: "inline-flex", width: 18, height: 18, border: `1px solid ${open ? "#E8A33D" : "#5C7A6A"}`, borderRadius: "50%", color: open ? "#E8A33D" : "#7FA98C", fontSize: 11, alignItems: "center", justifyContent: "center", marginLeft: 8, cursor: "pointer", fontFamily: "ui-monospace, monospace", flexShrink: 0, userSelect: "none" }}>i</span>;
-}
-function HintBox({ children }) {
-  return <div style={{ fontSize: 12, color: "#9DB5A8", lineHeight: 1.5, marginTop: 6, padding: "8px 12px", background: "rgba(127,169,140,0.07)", borderLeft: "2px solid #E8A33D", borderRadius: "0 8px 8px 0" }}>{children}</div>;
-}
-function Tgl({ label, on, set, hint }) {
-  const [show, setShow] = useState(false);
-  return <div>
-    <div className="tgl" onClick={() => set(!on)}>
-      <div className={`tgl-box ${on ? "on" : ""}`}><div className="tgl-dot" /></div>
-      <span style={{ fontSize: 13, color: "#C9D9CE" }}>{label}</span>
-      {hint && <InfoI open={show} onClick={() => setShow(!show)} />}
-    </div>
-    {hint && show && <HintBox>{hint}</HintBox>}
-  </div>;
-}
-function Mk({ p, l, t, accent }) { return <div style={{ position: "absolute", left: `${p}%`, transform: "translateX(-50%)", top: 0, textAlign: "center" }}><div style={{ width: 2, height: 32, background: accent ? "#E8A33D" : "#5C7A6A", margin: "0 auto" }} /><div style={{ fontSize: 10, color: accent ? "#E8A33D" : "#9DB5A8", marginTop: 3, fontFamily: "ui-monospace, monospace", whiteSpace: "nowrap" }}>{t}</div><div style={{ fontSize: 9, color: "#5C7A6A", whiteSpace: "nowrap" }}>{l}</div></div>; }
-function Grid({ children }) { return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>{children}</div>; }
-function S({ label, val, sub, accent, bad }) { return <div style={{ background: "#16261F", border: `1px solid ${bad ? "#A8493A" : "#2C463C"}`, borderRadius: 10, padding: "10px 12px" }}><div style={{ fontSize: 10, color: "#7FA98C", marginBottom: 3 }}>{label}</div><div style={{ fontFamily: "ui-monospace, monospace", fontSize: 19, fontWeight: 700, color: bad ? "#E89280" : accent ? "#E8A33D" : "#F4EFE3" }}>{val}</div><div style={{ fontSize: 10, color: bad ? "#D9624A" : "#5C7A6A", marginTop: 2 }}>{sub}</div></div>; }
-function Verdict({ ok, okText, failText, failTitle }) { return <div style={{ background: ok ? "rgba(127,169,140,0.12)" : "rgba(217,98,74,0.12)", border: `1px solid ${ok ? "#4A6B57" : "#A8493A"}`, borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}><div style={{ width: 10, height: 10, borderRadius: "50%", background: ok ? "#7FA98C" : "#D9624A", flexShrink: 0 }} /><div><div style={{ fontWeight: 600, fontSize: 14, color: ok ? "#C9E0D0" : "#F0C4B9" }}>{ok ? okText : failTitle}</div>{!ok && <div style={{ fontSize: 12, color: "#9DB5A8", marginTop: 2 }}>{failText}</div>}</div></div>; }
-function Tag({ on, label }) { return <span style={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, background: on ? "rgba(232,163,61,0.2)" : "rgba(44,70,60,0.3)", color: on ? "#E8A33D" : "#5C7A6A", fontWeight: on ? 600 : 400 }}>{label}</span>; }
-function Note({ children }) { return <p style={{ fontSize: 11, color: "#4A6356", marginTop: 10, lineHeight: 1.5, marginBottom: 0 }}>{children}</p>; }
-function Hint({ children }) { return <div style={{ fontSize: 11, color: "#5C7A6A", marginTop: 5, lineHeight: 1.4 }}>{children}</div>; }
+
+render();
+
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}
+</script>
+</body>
+</html>
