@@ -75,6 +75,38 @@ select{font-size:16px;-webkit-appearance:none;appearance:none;background-image:u
 .hidden{display:none}
 .info-i{display:inline-flex;width:18px;height:18px;border:1px solid #5C7A6A;border-radius:50%;color:#7FA98C;font-size:11px;align-items:center;justify-content:center;margin-left:8px;cursor:pointer;font-family:ui-monospace,monospace;flex-shrink:0;user-select:none}
 .hint-box{font-size:12px;color:#9DB5A8;line-height:1.5;margin-top:6px;padding:8px 12px;background:rgba(127,169,140,.07);border-left:2px solid #E8A33D;border-radius:0 8px 8px 0;display:none}
+
+@media(max-width:500px){
+  body{padding:env(safe-area-inset-top,20px) 16px calc(env(safe-area-inset-bottom,20px)+32px)}
+  .hdr{margin-bottom:28px;padding-top:12px}
+  .tabs{margin-bottom:28px;padding:5px}
+  .tab{padding:14px 8px;font-size:15px}
+  .card{padding:20px 18px;margin-bottom:28px;gap:24px;border-radius:14px}
+  .row{grid-template-columns:1fr;gap:20px}
+  .fl{font-size:13px;margin-bottom:8px;font-weight:500}
+  input[type="time"],input[type="number"],select{padding:16px;font-size:18px;min-height:56px;border-radius:12px}
+  select{font-size:17px}
+  .grid{grid-template-columns:1fr;gap:16px;margin-bottom:28px}
+  .stat{padding:20px;border-radius:14px}
+  .stat-lbl{font-size:13px;margin-bottom:6px}
+  .stat-val{font-size:26px}
+  .stat-sub{font-size:12px;margin-top:6px}
+  .verdict{padding:20px;margin-bottom:28px;border-radius:14px;gap:16px}
+  .verdict-title{font-size:16px}
+  .verdict-sub{font-size:13px}
+  .note{font-size:13px;margin-top:20px;line-height:1.7}
+  .badge{padding:18px 20px;margin-bottom:24px;font-size:15px;border-radius:14px}
+  .badge-code{font-size:20px}
+  .disrupt{padding:18px 20px;margin-bottom:24px;border-radius:14px;font-size:14px}
+  .disrupt-title{font-size:11px;margin-bottom:10px}
+  .disrupt-info{font-size:13px;margin-top:8px}
+  .sep{margin:24px 0}
+  .tgl{min-height:56px;gap:16px}
+  .tgl-label{font-size:15px}
+  .tag{font-size:13px;padding:6px 12px;margin:5px 10px 5px 0;border-radius:8px}
+  .hint{font-size:13px;margin-top:8px;line-height:1.6}
+  .hint-box{font-size:13px;padding:12px 16px}
+}
 </style>
 </head>
 <body>
