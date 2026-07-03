@@ -4,8 +4,8 @@
   "description": "Flight Duty Period calculator",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0A1410",
-  "theme_color": "#0A1410",
+  "background_color": "#F2F4F7",
+  "theme_color": "#F2F4F7",
   "orientation": "portrait",
   "icons": [
     {
