@@ -1,9 +1,17 @@
 {
   "name": "FDP-räknare",
   "short_name": "FDP",
+  "description": "Flight Duty Period calculator",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0E1B17",
-  "theme_color": "#0E1B17",
-  "orientation": "portrait"
+  "background_color": "#0A1410",
+  "theme_color": "#0A1410",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
 }
