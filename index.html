@@ -200,7 +200,7 @@ select{-webkit-appearance:none;appearance:none;background-image:var(--select-arr
 
 <script>
 "use strict";
-const APP_VERSION='16';
+const APP_VERSION='1';
 // Hint-boxarnas öppet-tillstånd överlever render(): id härleds ur hint-texten (hash) +
 // förekomstindex, så samma ruta får samma id varje render och kan återöppnas ur HINTS.
 let _hcount={};
@@ -648,7 +648,7 @@ function render(){
       o+='<div class="note">'+T.normSource+'</div>';
     }
   }
-  o+='<div class="disclaimer"><div class="disclaimer-title">'+T.disclaimerTitle+'</div><div>'+T.disclaimerText+'</div><div class="ver">FDP-'+(lang==='sv'?'räknare':'calculator')+' · v'+APP_VERSION+'</div></div>';
+  o+='<div class="disclaimer"><div class="disclaimer-title">'+T.disclaimerTitle+'</div><div>'+T.disclaimerText+'</div><div class="ver">FDP-'+(lang==='sv'?'räknare':'calculator')+' · Ver. '+APP_VERSION+'</div></div>';
   document.getElementById('app').innerHTML=o;
   bind();
 }
