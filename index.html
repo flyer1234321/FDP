@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FDP">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="FDP calculator for EASA ORO.FTL / CS FTL.1 — flight duty period, standby, split duty, in-flight rest and extension limits. Personal aid, not a replacement for the operator's OM-A.">
 <meta name="theme-color" content="#F2F4F7">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -211,13 +212,13 @@ select{-webkit-appearance:none;appearance:none;background-image:var(--select-arr
 
 <script>
 "use strict";
-const APP_VERSION='1.4';
+const APP_VERSION='1.5';
 // Hint-boxarnas öppet-tillstånd överlever render(): id härleds ur hint-texten (hash) +
 // förekomstindex, så samma ruta får samma id varje render och kan återöppnas ur HINTS.
 let _hcount={};
 const HINTS=new Set();
 function hintId(txt){let h=0;for(let i=0;i<txt.length;i++)h=(h*31+txt.charCodeAt(i))>>>0;const k=h.toString(36);_hcount[k]=(_hcount[k]||0)+1;return'h'+k+(_hcount[k]>1?'_'+_hcount[k]:'')}
-function hintBtn(hid){return'<span class="info-i'+(HINTS.has(hid)?' on':'')+'" onclick="event.stopPropagation();togHint(\''+hid+'\',this)">i</span>'}
+function hintBtn(hid){return'<span role="button" tabindex="0" aria-label="info" class="info-i'+(HINTS.has(hid)?' on':'')+'" onclick="event.stopPropagation();togHint(\''+hid+'\',this)">i</span>'}
 function hintBox(hid,txt){return'<div class="hint-box'+(HINTS.has(hid)?' open':'')+'" id="'+hid+'">'+txt+'</div>'}
 window.togHint=function(id,el){const h=document.getElementById(id);if(!h)return;h.classList.toggle('open');const open=h.classList.contains('open');el.classList.toggle('on',open);if(open)HINTS.add(id);else HINTS.delete(id)};
 window.togAcc=function(key){ACC[key]=!ACC[key];render()};
@@ -392,8 +393,8 @@ function stat(lbl,val,sub,accent,bad,hint,warn){const hid=hint?hintId(hint):'';c
 function field(lbl,inner,info){const hid=info?hintId(info):'';const iBtn=info?hintBtn(hid):'';const hBox=info?hintBox(hid,info):'';return'<div><div class="fl">'+lbl+iBtn+'</div>'+inner+hBox+'</div>'}
 function sel(id,opts,val){return'<select id="'+id+'">'+opts.map(o=>'<option value="'+o[0]+'"'+(String(o[0])===String(val)?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>'}
 function inp(id,type,val,extra){return'<input type="'+type+'" id="'+id+'" value="'+val+'" '+(type==='number'?'inputmode="decimal" ':'')+(extra||'')+'>'}
-function tgl(id,on,lbl,hint){const hid=hint?hintId(hint):'';const iBtn=hint?hintBtn(hid):'';const hBox=hint?hintBox(hid,hint):'';return'<div><div class="tgl" data-tgl="'+id+'"><div class="tgl-box'+(on?' on':'')+'"><div class="tgl-dot"></div></div><span class="tgl-label">'+lbl+'</span>'+iBtn+'</div>'+hBox+'</div>'}
-function accordion(key,title,sub,body){const open=ACC[key];return'<div><div class="accbtn" data-acc="'+key+'"><div class="accbtn-txt"><div class="accbtn-title"><span class="accbtn-dot"></span>'+title+'</div><div class="accbtn-sub">'+sub+'</div></div><div class="chev'+(open?' open':'')+'"><svg viewBox="0 0 10 10" fill="none"><path d="M1 3l4 4 4-4" style="stroke:var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div><div class="acc-body'+(open?' open':'')+'">'+body+'</div></div>'}
+function tgl(id,on,lbl,hint){const hid=hint?hintId(hint):'';const iBtn=hint?hintBtn(hid):'';const hBox=hint?hintBox(hid,hint):'';return'<div><div class="tgl" role="switch" tabindex="0" aria-checked="'+(on?'true':'false')+'" data-tgl="'+id+'"><div class="tgl-box'+(on?' on':'')+'"><div class="tgl-dot"></div></div><span class="tgl-label">'+lbl+'</span>'+iBtn+'</div>'+hBox+'</div>'}
+function accordion(key,title,sub,body){const open=ACC[key];return'<div><div class="accbtn" role="button" tabindex="0" aria-expanded="'+(open?'true':'false')+'" data-acc="'+key+'"><div class="accbtn-txt"><div class="accbtn-title"><span class="accbtn-dot"></span>'+title+'</div><div class="accbtn-sub">'+sub+'</div></div><div class="chev'+(open?' open':'')+'"><svg viewBox="0 0 10 10" fill="none"><path d="M1 3l4 4 4-4" style="stroke:var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div><div class="acc-body'+(open?' open':'')+'">'+body+'</div></div>'}
 
 // polar helpers for the instrument gauge
 function pol(cx,cy,r,a){const rad=a*Math.PI/180;return[cx+r*Math.cos(rad),cy-r*Math.sin(rad)]}
@@ -640,7 +641,7 @@ function render(){
         o+='<div style="margin-top:6px;font-size:12px;color:'+(c.tzHomeOk?'var(--green)':'var(--red)')+'">'+(c.tzHomeOk?T.tzHomeOk:T.tzHomeFail)+' ('+T.minRestReq+' '+c.tzHomeReq+')</div>';
       }
       const neHid=hintId(T.nextEarlyHint);
-      o+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--edge-2)"><div class="tgl" data-tgl="nNextEarly"><div class="tgl-box'+(N.nextEarly?' on':'')+'"><div class="tgl-dot"></div></div><span class="tgl-label">'+T.nextEarlyLabel+'</span>'+hintBtn(neHid)+'</div>'+hintBox(neHid,T.nextEarlyHint)+'</div>';
+      o+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--edge-2)"><div class="tgl" role="switch" tabindex="0" aria-checked="'+(N.nextEarly?'true':'false')+'" data-tgl="nNextEarly"><div class="tgl-box'+(N.nextEarly?' on':'')+'"><div class="tgl-dot"></div></div><span class="tgl-label">'+T.nextEarlyLabel+'</span>'+hintBtn(neHid)+'</div>'+hintBox(neHid,T.nextEarlyHint)+'</div>';
       if(c.transitionApplies){
         o+='<div style="margin-top:6px;font-size:12px;color:'+(c.transitionOk?'var(--green)':'var(--red)')+'">'+(c.transitionOk?T.transitionOk:T.transitionFail)+'</div>';
       }
@@ -688,6 +689,7 @@ function render(){
     }
   }
   o+='<div class="disclaimer"><div class="disclaimer-title">'+T.disclaimerTitle+'</div><div>'+T.disclaimerText+'</div><div class="ver">FDP-'+(lang==='sv'?'räknare':'calculator')+' · Ver. '+APP_VERSION+'</div></div>';
+  document.documentElement.lang=lang;
   document.getElementById('app').innerHTML=o;
   bind();
 }
@@ -728,6 +730,14 @@ function bind(){
 }
 
 render();
+
+// Tangentbordsstöd: Enter/Space aktiverar fokuserade togglar, accordions och info-knappar
+// (de är div/span-element, så webbläsaren ger dem inte knappbeteende av sig själv).
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'&&e.key!==' ')return;
+  const el=e.target;
+  if(el&&el.matches&&el.matches('.tgl,.accbtn,.info-i,.onb-dismiss')){e.preventDefault();el.click()}
+});
 
 // Punkt 8: visa en toast när en ny service worker aktiverats (dvs efter att nya filer
 // laddats upp och sw.js ändrats). skipWaiting+claim i sw.js gör att nya SW:n tar över
